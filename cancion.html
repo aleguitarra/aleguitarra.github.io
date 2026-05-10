@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="page-title">Cargando... — Ale Guitarra</title>
+<meta name="description" id="page-desc" content="Canción cristiana con acordes para guitarra.">
+
+<!-- Open Graph (preview en WhatsApp / Telegram) -->
+<meta property="og:title" id="og-title" content="Ale Guitarra">
+<meta property="og:description" id="og-desc" content="Canción cristiana con acordes para guitarra.">
+<meta property="og:image" content="https://raw.githubusercontent.com/tomicor/aleguitarra-data/main/logo.png">
+<meta property="og:type" content="website">
+
+<style>
+  :root {
+    --primary: #8B4513;
+    --cream: #F5E6D3;
+    --bg: #1A0F08;
+    --card: #2A1810;
+    --text: #F5E6D3;
+    --muted: #A89080;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+  .topbar {
+    background: var(--card);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .topbar a { color: var(--cream); text-decoration: none; }
+  .topbar img {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+  }
+  .topbar h2 {
+    color: var(--primary);
+    font-size: 18px;
+    font-family: Georgia, serif;
+  }
+  .container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 24px 20px 100px;
+  }
+  h1.title {
+    color: var(--primary);
+    font-family: Georgia, serif;
+    font-size: 28px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  .song-content {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 24px;
+    font-family: Arial, sans-serif;
+    font-size: 14.175px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    color: var(--text);
+  }
+  .song-content b, .song-content strong { color: var(--primary); }
+  .install-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--primary);
+    color: var(--cream);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.4);
+  }
+  .install-banner-text {
+    font-weight: bold;
+    font-size: 14px;
+  }
+  .install-banner a {
+    background: var(--cream);
+    color: var(--primary);
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .loading, .error {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .error a {
+    color: var(--primary);
+    display: inline-block;
+    margin-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/" style="display: flex; align-items: center; gap: 12px;">
+    <img src="https://raw.githubusercontent.com/tomicor/aleguitarra-data/main/icon.png" alt="">
+    <h2>Ale Guitarra</h2>
+  </a>
+</div>
+
+<div class="container">
+  <div id="content" class="loading">Cargando canción…</div>
+</div>
+
+<div class="install-banner">
+  <span class="install-banner-text">📱 Mejor experiencia en la app</span>
+  <a href="https://play.google.com/store/apps/details?id=com.corapps.aleguitarra">Descargar</a>
+</div>
+
+<script>
+  // Get slug from URL: ?slug=... or /cancion/SLUG
+  function getSlug() {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('slug');
+    if (q) return q;
+    const path = window.location.pathname.split('/').filter(Boolean);
+    if (path[0] === 'cancion' && path[1]) return path[1];
+    return null;
+  }
+
+  const slug = getSlug();
+  const content = document.getElementById('content');
+
+  if (!slug) {
+    content.className = 'error';
+    content.innerHTML = 'No se especificó una canción.<br><a href="/">Ir al inicio</a>';
+  } else {
+    // Load index.json to find title
+    Promise.all([
+      fetch('https://raw.githubusercontent.com/tomicor/aleguitarra-data/main/index.json').then(r => r.json()),
+      fetch('https://raw.githubusercontent.com/tomicor/aleguitarra-data/main/songs/' + slug + '.html').then(r => r.ok ? r.text() : Promise.reject())
+    ])
+    .then(([index, html]) => {
+      const meta = index.find(s => s.slug === slug);
+      const title = meta ? meta.title : slug;
+
+      // Update title and Open Graph
+      document.getElementById('page-title').textContent = title + ' — Ale Guitarra';
+      document.getElementById('og-title').setAttribute('content', title + ' — Ale Guitarra');
+      document.getElementById('page-desc').setAttribute('content', 'Letra y acordes de "' + title + '" para guitarra. Cancionero cristiano gratis.');
+      document.getElementById('og-desc').setAttribute('content', 'Letra y acordes de "' + title + '" para guitarra. Cancionero cristiano gratis.');
+
+      // Render
+      content.className = '';
+      content.innerHTML = '<h1 class="title">' + title + '</h1><div class="song-content">' + html + '</div>';
+    })
+    .catch(() => {
+      content.className = 'error';
+      content.innerHTML = 'No se encontró la canción.<br><a href="/">Ir al inicio</a>';
+    });
+  }
+</script>
+
+</body>
+</html>
