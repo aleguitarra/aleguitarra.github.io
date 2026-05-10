@@ -5,37 +5,43 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ale Guitarra · Cancionero cristiano para guitarra</title>
 <meta name="description" content="Más de 800 canciones cristianas con acordes para guitarra. Alabanzas, himnos y escuela dominical. Descargá la app gratis.">
-<meta name="theme-color" content="#1A0F08">
-<link rel="icon" href="https://raw.githubusercontent.com/tomicor/aleguitarra-data/main/icon.png" type="image/png">
+<meta name="theme-color" content="#0F0805">
+<link rel="icon" href="/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="/icon.png">
 
 <!-- Open Graph -->
-<meta property="og:title" content="Ale Guitarra · Cancionero cristiano para guitarra">
-<meta property="og:description" content="Más de 800 canciones con acordes. Alabanzas, himnos y escuela dominical. Gratis.">
-<meta property="og:image" content="https://raw.githubusercontent.com/tomicor/aleguitarra-data/main/logo.png">
+<meta property="og:title" content="Ale Guitarra · Cancionero cristiano">
+<meta property="og:description" content="Más de 800 canciones con acordes para guitarra. Alabanzas, himnos y escuela dominical. Gratis.">
+<meta property="og:image" content="https://aleguitarra.github.io/logo.png">
 <meta property="og:url" content="https://aleguitarra.github.io">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="es_UY">
 <meta name="twitter:card" content="summary_large_image">
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet">
 
 <style>
   :root {
     --primary: #B8651D;
-    --primary-dark: #8B4513;
+    --primary-dim: #8B4513;
     --primary-light: #D4843E;
+    --gold: #D4A574;
     --cream: #F5E6D3;
     --cream-dim: #E8D5BA;
     --bg: #0F0805;
     --bg-2: #1A0F08;
-    --card: #261810;
+    --card: #241710;
     --card-2: #2E1F15;
-    --border: rgba(212, 132, 62, 0.15);
+    --card-hover: #34221A;
+    --border: rgba(212, 132, 62, 0.18);
+    --border-strong: rgba(212, 132, 62, 0.35);
     --text: #F5E6D3;
     --muted: #9C8775;
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -43,170 +49,223 @@
     color: var(--text);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
   }
 
-  /* Background ambient gradient */
+  /* Ambient background glow */
   body::before {
     content: '';
     position: fixed;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
+    top: -30%;
+    left: -20%;
+    width: 140%;
+    height: 140%;
     background:
-      radial-gradient(ellipse at 30% 20%, rgba(184, 101, 29, 0.15) 0%, transparent 50%),
-      radial-gradient(ellipse at 70% 80%, rgba(139, 69, 19, 0.12) 0%, transparent 50%);
+      radial-gradient(circle at 20% 25%, rgba(184, 101, 29, 0.18) 0%, transparent 38%),
+      radial-gradient(circle at 80% 75%, rgba(139, 69, 19, 0.13) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(212, 132, 62, 0.05) 0%, transparent 60%);
     pointer-events: none;
     z-index: -1;
+    will-change: transform;
   }
 
-  /* ==== NAVBAR ==== */
+  ::selection { background: var(--primary); color: var(--cream); }
+
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+
+  /* ============ NAV ============ */
   nav {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(15, 8, 5, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(15, 8, 5, 0.78);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
     border-bottom: 1px solid var(--border);
-    padding: 16px 24px;
   }
   .nav-inner {
     max-width: 1200px;
     margin: 0 auto;
+    padding: 14px 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
   }
   .nav-brand {
     display: flex;
     align-items: center;
     gap: 12px;
-    text-decoration: none;
-    color: var(--cream);
+    flex-shrink: 0;
   }
   .nav-brand img {
     width: 36px;
     height: 36px;
-    border-radius: 8px;
+    border-radius: 9px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   }
   .nav-brand-name {
     font-family: 'Playfair Display', serif;
     font-size: 20px;
     font-weight: 700;
     color: var(--cream);
+    letter-spacing: 0.2px;
   }
   .nav-cta {
-    background: var(--primary);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
     color: var(--cream);
     padding: 10px 20px;
     border-radius: 10px;
     font-size: 14px;
     font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s;
+    transition: transform 0.18s, box-shadow 0.18s;
+    box-shadow: 0 4px 16px rgba(184, 101, 29, 0.3);
   }
-  .nav-cta:hover { background: var(--primary-light); transform: translateY(-1px); }
+  .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(184, 101, 29, 0.45); }
+  .nav-cta:active { transform: translateY(0); }
 
-  /* ==== HERO ==== */
+  /* ============ HERO ============ */
   .hero {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 60px 24px 60px;
+    padding: 64px 24px 80px;
     text-align: center;
+    position: relative;
   }
   .hero-logo {
     width: clamp(140px, 22vw, 200px);
     height: auto;
-    margin: 0 auto 32px;
-    display: block;
-    filter: drop-shadow(0 12px 40px rgba(184, 101, 29, 0.35));
+    margin: 0 auto 36px;
+    filter: drop-shadow(0 16px 50px rgba(184, 101, 29, 0.4));
+    animation: float 6s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
   }
   .hero-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     background: rgba(184, 101, 29, 0.15);
-    border: 1px solid var(--border);
-    color: var(--primary-light);
-    padding: 6px 14px;
+    border: 1px solid var(--border-strong);
+    color: var(--gold);
+    padding: 7px 16px;
     border-radius: 100px;
     font-size: 13px;
     font-weight: 600;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.4px;
     margin-bottom: 28px;
+    backdrop-filter: blur(8px);
+  }
+  .hero-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--primary-light);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--primary-light);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.15); }
   }
   .hero h1 {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(40px, 7vw, 76px);
+    font-size: clamp(40px, 7vw, 78px);
     font-weight: 900;
-    line-height: 1.05;
-    letter-spacing: -0.02em;
-    margin-bottom: 20px;
-    background: linear-gradient(135deg, var(--cream) 0%, var(--primary-light) 100%);
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+    margin-bottom: 22px;
+    background: linear-gradient(135deg, var(--cream) 0%, var(--gold) 60%, var(--primary-light) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .hero-tagline {
-    font-size: clamp(17px, 2vw, 21px);
+    font-size: clamp(16px, 1.8vw, 20px);
     color: var(--muted);
-    max-width: 620px;
-    margin: 0 auto 40px;
-    line-height: 1.55;
+    max-width: 600px;
+    margin: 0 auto 44px;
+    line-height: 1.6;
   }
 
-  /* Download buttons */
+  /* ============ DOWNLOAD BUTTONS ============ */
   .download-row {
     display: flex;
     flex-wrap: wrap;
     gap: 14px;
     justify-content: center;
-    margin-bottom: 56px;
+    scroll-margin-top: 100px;
   }
   .store-btn {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 22px;
+    gap: 14px;
+    padding: 13px 24px;
     border-radius: 14px;
-    text-decoration: none;
-    transition: all 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
     min-width: 200px;
+    font-family: inherit;
   }
   .store-btn.android {
     background: var(--cream);
-    color: var(--bg-2);
+    color: var(--bg);
     border: 1px solid var(--cream);
+    box-shadow: 0 8px 24px rgba(245, 230, 211, 0.12);
   }
   .store-btn.android:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(245, 230, 211, 0.2);
+    transform: translateY(-3px);
+    box-shadow: 0 14px 36px rgba(245, 230, 211, 0.22);
   }
+  .store-btn.android:active { transform: translateY(-1px); }
   .store-btn.ios {
     background: transparent;
     color: var(--muted);
     border: 1px solid var(--border);
     cursor: not-allowed;
+    position: relative;
   }
-  .store-btn-icon {
-    width: 32px;
-    height: 32px;
-    flex-shrink: 0;
+  .store-btn.ios::after {
+    content: 'PRÓXIMAMENTE';
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    background: var(--primary);
+    color: var(--cream);
+    font-size: 9px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 100px;
+    letter-spacing: 0.5px;
   }
+  .store-btn-icon { width: 30px; height: 30px; flex-shrink: 0; }
   .store-btn-text { display: flex; flex-direction: column; align-items: flex-start; }
-  .store-btn-small { font-size: 11px; opacity: 0.75; line-height: 1; margin-bottom: 3px; }
+  .store-btn-small { font-size: 11px; opacity: 0.72; line-height: 1; margin-bottom: 3px; }
   .store-btn-big { font-size: 17px; font-weight: 700; line-height: 1.1; }
 
-  /* Stats */
+  /* ============ STATS ============ */
   .stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 40px;
-    justify-content: center;
-    padding-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    max-width: 800px;
+    margin: 64px auto 0;
+    padding: 0 12px;
+  }
+  .stat {
+    text-align: center;
+    padding: 20px 8px;
+    background: linear-gradient(180deg, var(--card) 0%, transparent 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
   }
   .stat-num {
     font-family: 'Playfair Display', serif;
-    font-size: 46px;
+    font-size: clamp(28px, 4vw, 44px);
     font-weight: 900;
     color: var(--primary-light);
     line-height: 1;
@@ -214,13 +273,13 @@
   }
   .stat-label {
     color: var(--muted);
-    font-size: 13px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     font-weight: 600;
   }
 
-  /* ==== FEATURES ==== */
+  /* ============ SECTIONS ============ */
   .section {
     max-width: 1200px;
     margin: 0 auto;
@@ -228,143 +287,209 @@
   }
   .section-title {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(32px, 4vw, 44px);
+    font-size: clamp(30px, 4.5vw, 46px);
     font-weight: 700;
     text-align: center;
-    margin-bottom: 16px;
-    letter-spacing: -0.01em;
+    margin-bottom: 14px;
+    letter-spacing: -0.015em;
+    line-height: 1.1;
   }
   .section-sub {
     color: var(--muted);
     text-align: center;
-    font-size: 17px;
-    max-width: 560px;
+    font-size: clamp(15px, 1.6vw, 17px);
+    max-width: 580px;
     margin: 0 auto 56px;
-    line-height: 1.5;
+    line-height: 1.55;
   }
+
+  /* ============ FEATURES ============ */
   .features {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
   }
   .feature {
-    background: linear-gradient(135deg, var(--card) 0%, var(--card-2) 100%);
+    background: linear-gradient(155deg, var(--card) 0%, var(--card-2) 100%);
     border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 28px;
-    transition: all 0.25s;
+    border-radius: 20px;
+    padding: 32px 28px;
+    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
+    opacity: 0;
+    transition: opacity 0.25s;
   }
   .feature:hover {
-    transform: translateY(-3px);
-    border-color: rgba(212, 132, 62, 0.3);
+    transform: translateY(-4px);
+    border-color: var(--border-strong);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
   }
+  .feature:hover::before { opacity: 1; }
   .feature-icon {
-    width: 48px;
-    height: 48px;
-    background: rgba(184, 101, 29, 0.18);
-    border-radius: 12px;
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, rgba(184, 101, 29, 0.25) 0%, rgba(139, 69, 19, 0.15) 100%);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
-    margin-bottom: 18px;
+    font-size: 24px;
+    margin-bottom: 20px;
   }
   .feature h3 {
     font-size: 18px;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     color: var(--cream);
   }
   .feature p {
     color: var(--muted);
     font-size: 14.5px;
-    line-height: 1.55;
+    line-height: 1.6;
   }
 
-  /* ==== CATEGORIES ==== */
+  /* ============ CATEGORIES ============ */
   .categories {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 16px;
-    margin-top: 48px;
   }
   .category {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 32px 24px;
+    border-radius: 18px;
+    padding: 36px 24px;
     text-align: center;
-    transition: all 0.2s;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
   }
   .category:hover {
     border-color: var(--primary);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    background: var(--card-hover);
   }
-  .category-icon { font-size: 42px; margin-bottom: 14px; }
-  .category h4 { font-size: 19px; font-weight: 700; margin-bottom: 6px; color: var(--cream); }
-  .category p { color: var(--muted); font-size: 14px; }
+  .category-emoji {
+    font-size: 44px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .category h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--cream);
+  }
+  .category p {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+  }
 
-  /* ==== FINAL CTA ==== */
+  /* ============ FINAL CTA ============ */
   .cta-section {
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 60px 32px;
-    background: linear-gradient(135deg, rgba(184, 101, 29, 0.18) 0%, rgba(139, 69, 19, 0.08) 100%);
-    border: 1px solid var(--border);
+    max-width: 920px;
+    margin: 60px auto 0;
+    padding: clamp(40px, 6vw, 70px) clamp(24px, 4vw, 48px);
+    background:
+      radial-gradient(ellipse at top, rgba(184, 101, 29, 0.22) 0%, transparent 70%),
+      linear-gradient(135deg, var(--card) 0%, var(--card-2) 100%);
+    border: 1px solid var(--border-strong);
     border-radius: 28px;
     text-align: center;
+    position: relative;
+    overflow: hidden;
   }
   .cta-section h2 {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(28px, 4vw, 40px);
+    font-size: clamp(28px, 4.5vw, 42px);
     font-weight: 700;
     margin-bottom: 14px;
+    line-height: 1.15;
   }
   .cta-section p {
     color: var(--muted);
-    font-size: 17px;
+    font-size: clamp(15px, 1.6vw, 17px);
     margin-bottom: 32px;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
-  /* ==== FOOTER ==== */
+  /* ============ FOOTER ============ */
   footer {
     border-top: 1px solid var(--border);
-    padding: 40px 24px;
+    padding: 36px 24px;
     text-align: center;
     color: var(--muted);
-    font-size: 14px;
-    line-height: 1.7;
+    font-size: 13.5px;
   }
-  footer a { color: var(--primary-light); text-decoration: none; }
-  footer a:hover { text-decoration: underline; }
-  .heart { color: #d23b3b; }
+  footer a { color: var(--primary-light); transition: color 0.15s; }
+  footer a:hover { color: var(--gold); text-decoration: underline; }
+  footer .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+  footer .footer-meta {
+    font-size: 11.5px;
+    opacity: 0.55;
+    letter-spacing: 0.3px;
+  }
 
-  @media (max-width: 600px) {
-    .stats { gap: 28px; }
-    .stat-num { font-size: 36px; }
-    .store-btn { min-width: 0; flex: 1; min-width: 160px; }
-    .section { padding: 60px 20px; }
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 720px) {
+    .nav-inner { padding: 12px 16px; }
+    .nav-brand-name { font-size: 17px; }
+    .nav-brand img { width: 32px; height: 32px; }
+    .nav-cta { padding: 8px 16px; font-size: 13px; }
+    .hero { padding: 40px 20px 56px; }
+    .hero-logo { margin-bottom: 28px; }
+    .download-row { flex-direction: column; align-items: stretch; max-width: 320px; margin-left: auto; margin-right: auto; }
+    .store-btn { min-width: 0; justify-content: flex-start; }
+    .stats { grid-template-columns: repeat(2, 1fr); margin-top: 48px; }
+    .section { padding: 56px 20px; }
+    .feature { padding: 26px 22px; }
+    .category { padding: 28px 20px; }
+  }
+  @media (max-width: 380px) {
+    .stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat { padding: 16px 6px; }
   }
 </style>
 </head>
 <body>
 
-<!-- ==== NAV ==== -->
+<!-- ============ NAV ============ -->
 <nav>
   <div class="nav-inner">
     <a href="/" class="nav-brand">
-      <img src="https://raw.githubusercontent.com/tomicor/aleguitarra-data/main/icon.png" alt="">
+      <img src="/icon.png" alt="" loading="lazy">
       <span class="nav-brand-name">Ale Guitarra</span>
     </a>
     <a href="#descargar" class="nav-cta">Descargar</a>
   </div>
 </nav>
 
-<!-- ==== HERO ==== -->
+<!-- ============ HERO ============ -->
 <section class="hero">
-  <img src="https://raw.githubusercontent.com/tomicor/aleguitarra-data/main/logo.png" alt="Ale Guitarra" class="hero-logo">
-  <div class="hero-badge">✨ Más de 800 canciones</div>
-  <h1>El cancionero<br>de tu iglesia, en el bolsillo</h1>
+  <img src="/logo.png" alt="Ale Guitarra" class="hero-logo">
+  <div class="hero-badge">Más de 800 canciones</div>
+  <h1>El cancionero<br>de tu iglesia,<br>en el bolsillo</h1>
   <p class="hero-tagline">
     Alabanzas, himnos y canciones de escuela dominical con acordes para guitarra.
     Buscás, transponés y compartís — todo gratis y sin internet.
@@ -372,7 +497,7 @@
 
   <div id="descargar" class="download-row">
     <a href="https://play.google.com/store/apps/details?id=com.corapps.aleguitarra" class="store-btn android">
-      <svg class="store-btn-icon" viewBox="0 0 24 24" fill="currentColor">
+      <svg class="store-btn-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zM14.792 13L17.85 16.058l-12.045 6.96L14.792 13zM18.92 11.93l2.5 1.443a1 1 0 0 1 0 1.732l-2.671 1.543L15.793 13l3.127-3.07zM5.805 1.022L17.85 7.982 14.792 11 5.805 1.022z"/>
       </svg>
       <div class="store-btn-text">
@@ -382,37 +507,37 @@
     </a>
 
     <span class="store-btn ios" title="Próximamente">
-      <svg class="store-btn-icon" viewBox="0 0 24 24" fill="currentColor">
+      <svg class="store-btn-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <path d="M17.5 12.5c0-2.4 2-3.5 2-3.6-1.1-1.6-2.8-1.8-3.4-1.9-1.5-.1-2.8.8-3.5.8s-1.8-.8-3-.8c-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.2 0 2-1.1 2.8-2.2.9-1.3 1.2-2.5 1.3-2.6-.1 0-2.5-1-2.5-3.6zM15 4.5c.6-.7 1-1.7.9-2.7-.9 0-2 .6-2.6 1.3-.5.6-1 1.6-.9 2.6 1 .1 2-.5 2.6-1.2z"/>
       </svg>
       <div class="store-btn-text">
-        <span class="store-btn-small">Próximamente en</span>
+        <span class="store-btn-small">Disponible en</span>
         <span class="store-btn-big">App Store</span>
       </div>
     </span>
   </div>
 
   <div class="stats">
-    <div>
-      <div class="stat-num" id="total-songs">844</div>
+    <div class="stat">
+      <div class="stat-num" id="total-songs" data-target="844">844</div>
       <div class="stat-label">Canciones</div>
     </div>
-    <div>
+    <div class="stat">
       <div class="stat-num">3</div>
       <div class="stat-label">Categorías</div>
     </div>
-    <div>
+    <div class="stat">
       <div class="stat-num">100%</div>
       <div class="stat-label">Gratis</div>
     </div>
-    <div>
+    <div class="stat">
       <div class="stat-num">∞</div>
       <div class="stat-label">Offline</div>
     </div>
   </div>
 </section>
 
-<!-- ==== FEATURES ==== -->
+<!-- ============ FEATURES ============ -->
 <section class="section">
   <h2 class="section-title">Pensado para guitarristas</h2>
   <p class="section-sub">Todo lo que necesitás para liderar la alabanza, sin distracciones.</p>
@@ -421,17 +546,17 @@
     <div class="feature">
       <div class="feature-icon">🎼</div>
       <h3>Acordes y letra</h3>
-      <p>Los acordes alineados sobre la letra, listos para tocar. Tipografía clara y modo proyector incluido.</p>
+      <p>Acordes alineados sobre la letra, listos para tocar. Tipografía clara y modo proyector incluido.</p>
     </div>
     <div class="feature">
       <div class="feature-icon">🎚️</div>
       <h3>Transposición</h3>
-      <p>Cambiá la tonalidad con un toque. Ideal para adaptar la canción a tu voz o al equipo.</p>
+      <p>Cambiá la tonalidad con un toque. Adaptá la canción a tu voz o al equipo.</p>
     </div>
     <div class="feature">
       <div class="feature-icon">📋</div>
       <h3>Listas colaborativas</h3>
-      <p>Armá la lista del domingo y compartila con tu equipo. Cualquiera puede agregar canciones.</p>
+      <p>Armá la lista del domingo y compartila con tu equipo. Cualquiera puede agregar.</p>
     </div>
     <div class="feature">
       <div class="feature-icon">🔍</div>
@@ -451,37 +576,37 @@
   </div>
 </section>
 
-<!-- ==== CATEGORIES ==== -->
+<!-- ============ CATEGORIES ============ -->
 <section class="section" style="padding-top: 0;">
-  <h2 class="section-title">Tres cancioneros, uno solo</h2>
+  <h2 class="section-title">Tres cancioneros, una sola app</h2>
   <p class="section-sub">Toda la música que tu congregación canta cada semana.</p>
 
   <div class="categories">
     <div class="category">
-      <div class="category-icon">🙌</div>
+      <div class="category-emoji">🙌</div>
       <h4>Alabanzas</h4>
       <p>Canciones de adoración modernas y clásicos del culto contemporáneo.</p>
     </div>
     <div class="category">
-      <div class="category-icon">📖</div>
+      <div class="category-emoji">📖</div>
       <h4>Himnos</h4>
       <p>Los himnos tradicionales numerados, con acordes para guitarra.</p>
     </div>
     <div class="category">
-      <div class="category-icon">👦</div>
+      <div class="category-emoji">👦</div>
       <h4>Escuela Dominical</h4>
       <p>Canciones para los más chicos, fáciles de tocar y aprender.</p>
     </div>
   </div>
 </section>
 
-<!-- ==== CTA ==== -->
-<section class="section">
+<!-- ============ FINAL CTA ============ -->
+<section class="section" style="padding-top: 0;">
   <div class="cta-section">
     <h2>Empezá a tocar hoy</h2>
     <p>Descargá Ale Guitarra gratis y llevá el cancionero adonde vayas.</p>
     <a href="https://play.google.com/store/apps/details?id=com.corapps.aleguitarra" class="store-btn android" style="display: inline-flex;">
-      <svg class="store-btn-icon" viewBox="0 0 24 24" fill="currentColor">
+      <svg class="store-btn-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zM14.792 13L17.85 16.058l-12.045 6.96L14.792 13zM18.92 11.93l2.5 1.443a1 1 0 0 1 0 1.732l-2.671 1.543L15.793 13l3.127-3.07zM5.805 1.022L17.85 7.982 14.792 11 5.805 1.022z"/>
       </svg>
       <div class="store-btn-text">
@@ -492,23 +617,37 @@
   </div>
 </section>
 
-<!-- ==== FOOTER ==== -->
+<!-- ============ FOOTER ============ -->
 <footer>
-  <p>
-    <a href="https://github.com/aleguitarra">GitHub</a> ·
+  <div class="footer-links">
+    <a href="https://github.com/aleguitarra">GitHub</a>
     <a href="https://play.google.com/store/apps/details?id=com.corapps.aleguitarra">Google Play</a>
-  </p>
-  <p style="margin-top: 18px; font-size: 12px; opacity: 0.6;">
-    © 2026 Ale Guitarra · com.corapps.aleguitarra
-  </p>
+  </div>
+  <div class="footer-meta">© 2026 Ale Guitarra · com.corapps.aleguitarra</div>
 </footer>
 
 <script>
-  // Update song count from real data
+  // Real song count from data repo (updates the 844)
   fetch('https://raw.githubusercontent.com/tomicor/aleguitarra-data/main/index.json')
     .then(r => r.json())
-    .then(d => { document.getElementById('total-songs').textContent = d.length; })
+    .then(d => {
+      const el = document.getElementById('total-songs');
+      if (el && Array.isArray(d)) el.textContent = d.length;
+    })
     .catch(() => {});
+
+  // Smooth scroll fallback for browsers that don't honor scroll-margin
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href').slice(1);
+      const t = document.getElementById(id);
+      if (t) {
+        e.preventDefault();
+        const y = t.getBoundingClientRect().top + window.pageYOffset - 80;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    });
+  });
 </script>
 
 </body>
