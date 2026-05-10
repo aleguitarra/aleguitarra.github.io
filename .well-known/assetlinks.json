@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.corapps.aleguitarra",
+      "sha256_cert_fingerprints": [
+        "6F:18:1B:1F:C1:EA:0F:1B:65:40:34:3D:55:A4:76:02:EB:2E:E4:0D:F1:34:5C:63:61:2C:46:CB:F5:96:E2:E6"
+      ]
+    }
+  }
+]
