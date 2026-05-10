@@ -112,8 +112,15 @@
   .hero {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 80px 24px 60px;
+    padding: 60px 24px 60px;
     text-align: center;
+  }
+  .hero-logo {
+    width: clamp(140px, 22vw, 200px);
+    height: auto;
+    margin: 0 auto 32px;
+    display: block;
+    filter: drop-shadow(0 12px 40px rgba(184, 101, 29, 0.35));
   }
   .hero-badge {
     display: inline-block;
@@ -355,6 +362,7 @@
 
 <!-- ==== HERO ==== -->
 <section class="hero">
+  <img src="https://raw.githubusercontent.com/tomicor/aleguitarra-data/main/logo.png" alt="Ale Guitarra" class="hero-logo">
   <div class="hero-badge">✨ Más de 800 canciones</div>
   <h1>El cancionero<br>de tu iglesia, en el bolsillo</h1>
   <p class="hero-tagline">
@@ -486,8 +494,7 @@
 
 <!-- ==== FOOTER ==== -->
 <footer>
-  <p>Hecho con <span class="heart">♥</span> para la iglesia</p>
-  <p style="margin-top: 8px;">
+  <p>
     <a href="https://github.com/aleguitarra">GitHub</a> ·
     <a href="https://play.google.com/store/apps/details?id=com.corapps.aleguitarra">Google Play</a>
   </p>
