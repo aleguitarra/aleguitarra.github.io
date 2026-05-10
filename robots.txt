@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /cancion/
+Allow: /
+
+Sitemap: https://aleguitarra.github.io/sitemap.xml
