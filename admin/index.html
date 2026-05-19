@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · Ale Guitarra</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+:root{
+  --red:#CC0000;--primary:#8B3A0F;--bg:#F5EDE3;--text:#3C3A36;
+  --green:#27AE60;--border:rgba(139,58,15,.2);
+  --font-size:14.175px;--line-h:1.4;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:#1a0a02;color:#f0e0d0;min-height:100vh}
+
+/* GATE */
+#gate{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.gate-box{background:#2a1208;border:1px solid rgba(204,0,0,.25);border-radius:18px;padding:40px 32px;max-width:380px;width:100%;text-align:center}
+.gate-box h1{font-size:22px;margin-bottom:6px}
+.gate-box p{color:#9C8775;font-size:14px;margin-bottom:28px}
+.gate-box input{width:100%;padding:12px 16px;border-radius:10px;border:1.5px solid rgba(204,0,0,.3);background:#1a0a02;color:#f0e0d0;font-size:15px;outline:none}
+.gate-box input:focus{border-color:#CC0000}
+.gate-box button{width:100%;margin-top:14px;padding:13px;border-radius:10px;background:#CC0000;color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer}
+.gate-error{color:#ff6b6b;font-size:13px;margin-top:10px;min-height:18px}
+
+/* APP */
+#app{display:none}
+
+/* TOPBAR */
+#topbar{background:#2a1208;border-bottom:1px solid rgba(204,0,0,.2);padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:50}
+.topbar-logo{font-size:22px}
+#topbar h1{font-size:18px;font-weight:800;flex:1}
+.btn{padding:9px 18px;border-radius:9px;font-size:13px;font-weight:700;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:opacity .2s}
+.btn:hover{opacity:.82}
+.btn-green{background:#27AE60;color:#fff}
+.btn-outline{background:transparent;border:1.5px solid rgba(204,0,0,.4);color:#f0e0d0}
+
+/* STATS */
+#stats{display:flex;gap:24px;padding:16px 20px;background:#200c04;border-bottom:1px solid rgba(204,0,0,.1);flex-wrap:wrap}
+.stat{text-align:center}
+.stat-val{font-size:24px;font-weight:800;color:#CC0000}
+.stat-label{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#9C8775;margin-top:2px}
+
+/* TOOLBAR */
+#toolbar{padding:16px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#1a0a02;border-bottom:1px solid rgba(204,0,0,.1)}
+#search{flex:1;min-width:200px;padding:10px 14px;border-radius:9px;border:1.5px solid rgba(204,0,0,.25);background:#2a1208;color:#f0e0d0;font-size:14px;outline:none}
+#search:focus{border-color:#CC0000}
+#search::placeholder{color:#9C8775}
+.cat-pills{display:flex;gap:6px;flex-wrap:wrap}
+.cat-pill{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid rgba(204,0,0,.25);color:#9C8775;background:transparent;transition:all .15s}
+.cat-pill.active,.cat-pill:hover{background:rgba(204,0,0,.15);border-color:#CC0000;color:#f0e0d0}
+
+/* SONG LIST */
+#songs-wrap{padding:0 20px 40px}
+#songs-count{padding:14px 0 10px;font-size:13px;color:#9C8775}
+.song-item{background:#2a1208;border:1px solid rgba(204,0,0,.15);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:border-color .15s}
+.song-item:hover{border-color:rgba(204,0,0,.4)}
+.song-info{flex:1;min-width:0}
+.song-title{font-size:15px;font-weight:700;color:#f0e0d0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song-meta{font-size:12px;color:#9C8775;margin-top:3px;display:flex;gap:10px;flex-wrap:wrap}
+.cat-badge{background:rgba(204,0,0,.15);color:#CC0000;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;text-transform:uppercase}
+.song-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-edit{background:rgba(204,0,0,.15);color:#f0e0d0;border:1px solid rgba(204,0,0,.3)}
+.btn-edit:hover{background:rgba(204,0,0,.3)}
+.btn-del-s{background:transparent;color:#ff6b6b;border:1px solid rgba(255,107,107,.3);padding:7px 12px}
+.btn-del-s:hover{background:rgba(255,107,107,.1)}
+
+/* MODALS */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.modal-box{background:#2a1208;border:1px solid rgba(204,0,0,.3);border-radius:18px;padding:28px;width:100%;max-width:680px;margin:auto}
+.modal-box h2{font-size:20px;margin-bottom:20px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:#9C8775;margin-bottom:6px;font-weight:600}
+.field input,.field select,.field textarea{width:100%;padding:10px 13px;border-radius:8px;border:1.5px solid rgba(204,0,0,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none}
+.field textarea{font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:14.175px;line-height:1.4;min-height:280px;resize:vertical;white-space:pre}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#CC0000}
+.field select option{background:#2a1208}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap}
+.btn-cancel{background:transparent;color:#9C8775;border:1px solid rgba(150,150,150,.3)}
+.btn-publish{background:#27AE60;color:#fff}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* DELETE MODAL */
+.del-modal-box{max-width:440px}
+.cooldown-msg{color:#ff6b6b;font-size:13px;text-align:center;padding:11px;background:rgba(204,0,0,.1);border-radius:8px;margin-bottom:12px}
+
+/* NEW SONG PREVIEW */
+#new-preview-wrap{margin-top:6px;background:var(--bg);border-radius:8px;padding:14px;max-height:250px;overflow-y:auto}
+.preview-mini{font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:var(--font-size);line-height:var(--line-h);color:var(--text)}
+.preview-mini .chord-line{color:var(--red);font-weight:bold;white-space:pre;display:block}
+.preview-mini .lyric-line{color:var(--text);white-space:pre;display:block}
+.preview-mini .empty-line{display:block;height:14px}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#27AE60;color:#fff;padding:10px 22px;border-radius:30px;font-size:14px;font-weight:600;z-index:500;transition:transform .3s;pointer-events:none;white-space:nowrap}
+#toast.err{background:#CC0000}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:600px){
+  .field-row{grid-template-columns:1fr}
+  .song-actions{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<!-- GATE -->
+<div id="gate">
+  <div class="gate-box">
+    <div style="font-size:36px;margin-bottom:12px">🎸</div>
+    <h1>Ale Guitarra · Admin</h1>
+    <p>Panel de administración. Ingresá tu contraseña.</p>
+    <input type="password" id="pwd-input" placeholder="Contraseña" autocomplete="current-password">
+    <button onclick="login()">Entrar</button>
+    <div class="gate-error" id="gate-err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div id="topbar">
+    <span class="topbar-logo">🎸</span>
+    <h1>Ale Guitarra · Admin</h1>
+    <a href="/" style="color:#9C8775;font-size:13px;text-decoration:none">← Inicio</a>
+    <button class="btn btn-green" onclick="openNew()">+ Nueva canción</button>
+  </div>
+
+  <div id="stats">
+    <div class="stat"><div class="stat-val" id="stat-total">—</div><div class="stat-label">Canciones</div></div>
+    <div class="stat"><div class="stat-val" id="stat-version">—</div><div class="stat-label">Versión</div></div>
+    <div class="stat"><div class="stat-val" id="stat-updated">—</div><div class="stat-label">Actualizado</div></div>
+    <div class="stat"><div class="stat-val" id="stat-alabanzas">—</div><div class="stat-label">Alabanzas</div></div>
+    <div class="stat"><div class="stat-val" id="stat-himnos">—</div><div class="stat-label">Himnos</div></div>
+    <div class="stat"><div class="stat-val" id="stat-ed">—</div><div class="stat-label">Esc. Dom.</div></div>
+  </div>
+
+  <div id="toolbar">
+    <input type="search" id="search" placeholder="🔍 Buscar por título o slug..." oninput="filterSongs()">
+    <div class="cat-pills">
+      <button class="cat-pill active" data-cat="" onclick="setCat(this)">Todas</button>
+      <button class="cat-pill" data-cat="alabanzas" onclick="setCat(this)">Alabanzas</button>
+      <button class="cat-pill" data-cat="himnos" onclick="setCat(this)">Himnos</button>
+      <button class="cat-pill" data-cat="escuela_dominical" onclick="setCat(this)">Esc. Dom.</button>
+    </div>
+  </div>
+
+  <div id="songs-wrap">
+    <div id="songs-count"></div>
+    <div id="song-list">
+      <div style="text-align:center;padding:40px;color:#9C8775">Cargando canciones...</div>
+    </div>
+  </div>
+</div>
+
+<!-- NEW SONG MODAL -->
+<div class="modal-bg" id="new-modal" style="display:none" onclick="bgClose(event,'new-modal')">
+  <div class="modal-box">
+    <h2>🎵 Nueva canción</h2>
+    <div class="field-row">
+      <div class="field">
+        <label>Título *</label>
+        <input type="text" id="new-title" placeholder="Ej: Cuán Grande es Él" oninput="genSlug()">
+      </div>
+      <div class="field">
+        <label>Categoría *</label>
+        <select id="new-cat">
+          <option value="alabanzas">Alabanzas</option>
+          <option value="himnos">Himnos</option>
+          <option value="escuela_dominical">Escuela Dominical</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Slug (auto-generado, editable)</label>
+      <input type="text" id="new-slug" placeholder="cuan-grande-es-el">
+    </div>
+    <div class="field">
+      <label>Contenido — una línea por acorde/letra (los acordes se detectan automáticamente)</label>
+      <textarea id="new-content" placeholder="Am  C  G  F&#10;Todo lo que soy alabe al Señor&#10;&#10;Am  C  G&#10;Con todo mi corazón" oninput="updateNewPreview()"></textarea>
+    </div>
+    <div class="field">
+      <label>Preview (así se verá en la app)</label>
+      <div id="new-preview-wrap"><div class="preview-mini" id="new-preview"></div></div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>YouTube video 1 (URL o ID)</label>
+        <input type="text" id="new-yt1" placeholder="dQw4w9WgXcQ">
+      </div>
+      <div class="field">
+        <label>YouTube video 2 (opcional)</label>
+        <input type="text" id="new-yt2" placeholder="">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel btn" onclick="closeNew()">Cancelar</button>
+      <button class="btn btn-publish btn" onclick="publishNew()" id="publish-btn">✓ Publicar canción</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-bg" id="del-modal" style="display:none" onclick="bgClose(event,'del-modal')">
+  <div class="modal-box del-modal-box">
+    <h2 style="color:#ff6b6b">🗑 Eliminar canción</h2>
+    <p id="del-name" style="color:#f0e0d0;font-weight:700;font-size:16px;margin-bottom:8px"></p>
+    <p style="margin-bottom:16px">Escribí <strong style="color:#fff">ELIMINAR</strong> para confirmar. Acción irreversible.</p>
+    <div class="cooldown-msg" id="del-cd" style="display:none"></div>
+    <input class="field" style="padding:10px 13px;border-radius:8px;border:1.5px solid rgba(204,0,0,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;width:100%;margin-bottom:14px"
+      id="del-confirm" placeholder="Escribí ELIMINAR">
+    <div class="modal-actions">
+      <button class="btn btn-cancel btn" onclick="closeDel()">Cancelar</button>
+      <button class="btn btn-del-s btn" onclick="doDelete()" id="del-exec-btn">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+const EDGE  = 'https://ntrfkgxqeugjshvicgfj.supabase.co/functions/v1/github-write';
+const ANON  = 'sb_publishable_6_QGimLMb1AXk2nmu7_TKQ_tfWxvsVB';
+const RAW   = 'https://raw.githubusercontent.com/tomicor/aleguitarra-data/main';
+const HASH  = '36cffd6c11af993009fffa98d9fb6fbaecf8a35f7640d13c73fbbd5afad9c3c7';
+const DEL_KEY      = 'ag_last_delete';
+const DEL_COOLDOWN = 5 * 60 * 1000;
+
+let allSongs = [];
+let currentCat = '';
+let deleteSlug = '';
+let deleteTitle = '';
+
+// ── PASSWORD ───────────────────────────────────────────────────────────────────
+async function sha256(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function login() {
+  const pwd = document.getElementById('pwd-input').value;
+  if (!pwd) return;
+  const h = await sha256(pwd);
+  if (h !== HASH) { document.getElementById('gate-err').textContent = 'Contraseña incorrecta.'; return; }
+  sessionStorage.setItem('ag_pwd', pwd);
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadIndex();
+}
+document.getElementById('pwd-input').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+if (sessionStorage.getItem('ag_pwd')) {
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadIndex();
+}
+
+// ── CHORD DETECTION (same as editor) ──────────────────────────────────────────
+const AG = {
+  isSingle(s){
+    if(!s) return false;
+    if(s==='N.C.'||s==='NC') return true;
+    if(/^[A-G][b#]?(m|min|maj|dim|aug|sus|add|M)?[0-9]*(sus[0-9]?|add[0-9]?|maj[0-9]?|min[0-9]?|dim[0-9]?|aug[0-9]?|b[0-9]*|#[0-9]*|M|m)?[0-9]*$/.test(s)) return true;
+    if(/^(Do|Re|Mi|Fa|Sol|La|Si)[b#]?(m|min|maj|dim|aug|sus|add)?[0-9]*$/.test(s)) return true;
+    return false;
+  },
+  isChord(s){
+    if(!s) return false;
+    if(s==='N.C.'||s==='NC'||s==='N/C') return true;
+    if(s.startsWith('(')||s.endsWith(')')){const c=s.replace(/[()]/g,'');return !c||this.isSingle(c);}
+    if(s.includes('/')) return s.split('/').every(p=>!p||this.isSingle(p));
+    if(s.includes('-')&&!s.startsWith('-')) return s.split('-').every(p=>!p||this.isSingle(p));
+    return this.isSingle(s);
+  },
+  isChordLine(line){
+    if(!line) return false;
+    const tokens=line.trim().replace(/\u00A0/g,' ').trim().split(/\s+/).filter(Boolean);
+    return tokens.length>0&&tokens.every(t=>this.isChord(t));
+  },
+  esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');},
+  visualToHtml(visual){
+    const lines=visual.split('\n');const out=[];let last=false;
+    for(const line of lines){
+      if(!line.trim()){if(!last) out.push('<div style="text-align: left;"><br/></div>');last=true;continue;}
+      last=false;
+      if(this.isChordLine(line)){
+        const enc=line.replace(/ /g,'&nbsp;').replace(/\u00A0/g,'&nbsp;');
+        out.push(`<div style="text-align: left;"><span style="color: red;">${enc}</span></div>`);
+      } else {
+        out.push(`<div style="text-align: left;">${this.esc(line)}</div>`);
+      }
+    }
+    return out.join('\n');
+  },
+  renderPreview(visual){
+    if(!visual) return '';
+    return visual.split('\n').map(line=>{
+      if(!line) return '<span class="empty-line"></span>';
+      if(this.isChordLine(line)) return `<span class="chord-line">${this.esc(line)}</span>`;
+      return `<span class="lyric-line">${this.esc(line)}</span>`;
+    }).join('');
+  }
+};
+
+// ── EDGE FUNCTION ──────────────────────────────────────────────────────────────
+async function callEdge(data) {
+  const r = await fetch(EDGE, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+ANON},
+    body: JSON.stringify({...data, password: sessionStorage.getItem('ag_pwd')})
+  });
+  const j = await r.json();
+  if (!j.ok) throw new Error(j.error||'Error servidor');
+  return j;
+}
+
+// ── TOAST ──────────────────────────────────────────────────────────────────────
+let _tt;
+function toast(msg,err=false){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className=(err?'err':'')+' show';
+  clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('show'),3200);
+}
+
+// ── YOUTUBE ────────────────────────────────────────────────────────────────────
+function extractYtId(input) {
+  const t=(input||'').trim();if(!t) return '';
+  const ps=[/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,/youtu\.be\/([a-zA-Z0-9_-]{11})/,/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/];
+  for(const p of ps){const m=t.match(p);if(m) return m[1];}
+  if(/^[a-zA-Z0-9_-]{11}$/.test(t)) return t;
+  return t;
+}
+
+// ── SLUG GEN ───────────────────────────────────────────────────────────────────
+function genSlug() {
+  const title = document.getElementById('new-title').value;
+  const slug = title.toLowerCase()
+    .replace(/[áàäâã]/g,'a').replace(/[éèëê]/g,'e').replace(/[íìïî]/g,'i')
+    .replace(/[óòöôõ]/g,'o').replace(/[úùüû]/g,'u').replace(/ñ/g,'n')
+    .replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-')
+    .replace(/^-|-$/g,'').substring(0,80);
+  document.getElementById('new-slug').value = slug;
+}
+
+// ── LOAD INDEX ─────────────────────────────────────────────────────────────────
+async function loadIndex() {
+  try {
+    const [idxRes, verRes] = await Promise.all([
+      fetch(`${RAW}/index.json?t=${Date.now()}`),
+      fetch(`${RAW}/version.json?t=${Date.now()}`)
+    ]);
+    allSongs = await idxRes.json();
+    const ver = await verRes.json();
+
+    // Stats
+    document.getElementById('stat-total').textContent = allSongs.length;
+    document.getElementById('stat-version').textContent = ver.version || '—';
+    const upd = ver.updated_at ? ver.updated_at.split('T')[0] : '—';
+    document.getElementById('stat-updated').textContent = upd;
+    document.getElementById('stat-alabanzas').textContent = allSongs.filter(s=>s.category==='alabanzas').length;
+    document.getElementById('stat-himnos').textContent = allSongs.filter(s=>s.category==='himnos').length;
+    document.getElementById('stat-ed').textContent = allSongs.filter(s=>s.category==='escuela_dominical').length;
+
+    filterSongs();
+  } catch(e) {
+    toast('Error al cargar: '+e.message, true);
+  }
+}
+
+// ── FILTER ─────────────────────────────────────────────────────────────────────
+function filterSongs() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  let filtered = currentCat ? allSongs.filter(s=>s.category===currentCat) : allSongs;
+  if (q) filtered = filtered.filter(s=>
+    s.title.toLowerCase().includes(q) || s.slug.toLowerCase().includes(q)
+  );
+  renderList(filtered);
+}
+
+function setCat(btn) {
+  document.querySelectorAll('.cat-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat = btn.dataset.cat;
+  filterSongs();
+}
+
+function catLabel(c) {
+  return {alabanzas:'Alabanza',himnos:'Himno',escuela_dominical:'Esc. Dom.'}[c] || c;
+}
+
+function renderList(songs) {
+  const el = document.getElementById('song-list');
+  document.getElementById('songs-count').textContent = `${songs.length} canción${songs.length!==1?'es':''}`;
+
+  if (!songs.length) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:#9C8775">No se encontraron canciones.</div>';
+    return;
+  }
+
+  el.innerHTML = songs.map(s => `
+    <div class="song-item">
+      <div class="song-info">
+        <div class="song-title">${esc(s.title)}</div>
+        <div class="song-meta">
+          <span class="cat-badge">${catLabel(s.category)}</span>
+          <span>${esc(s.slug)}</span>
+          ${s.youtube_ids&&s.youtube_ids.length ? `<span>▶ ${s.youtube_ids.length} video${s.youtube_ids.length>1?'s':''}</span>` : ''}
+        </div>
+      </div>
+      <div class="song-actions">
+        <a href="/editor/?slug=${encodeURIComponent(s.slug)}" class="btn btn-edit btn" target="_blank">✏️ Editar</a>
+        <button class="btn btn-del-s btn" onclick="confirmDel('${esc(s.slug)}','${esc(s.title.replace(/'/g,"\\'"))}')">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── NEW SONG ───────────────────────────────────────────────────────────────────
+function openNew() {
+  document.getElementById('new-title').value = '';
+  document.getElementById('new-slug').value = '';
+  document.getElementById('new-content').value = '';
+  document.getElementById('new-yt1').value = '';
+  document.getElementById('new-yt2').value = '';
+  document.getElementById('new-preview').innerHTML = '';
+  document.getElementById('new-modal').style.display = 'flex';
+}
+
+function closeNew() { document.getElementById('new-modal').style.display = 'none'; }
+
+function updateNewPreview() {
+  const v = document.getElementById('new-content').value;
+  document.getElementById('new-preview').innerHTML = AG.renderPreview(v);
+}
+
+async function publishNew() {
+  const title = document.getElementById('new-title').value.trim();
+  const slug = document.getElementById('new-slug').value.trim();
+  const cat = document.getElementById('new-cat').value;
+  const content = document.getElementById('new-content').value;
+
+  if (!title) { toast('El título es obligatorio', true); return; }
+  if (!slug) { toast('El slug es obligatorio', true); return; }
+  if (!content.trim()) { toast('El contenido no puede estar vacío', true); return; }
+
+  // Check slug not already in use
+  if (allSongs.find(s => s.slug === slug)) {
+    toast(`El slug "${slug}" ya existe. Cambialo.`, true);
+    return;
+  }
+
+  const id1 = extractYtId(document.getElementById('new-yt1').value);
+  const id2 = extractYtId(document.getElementById('new-yt2').value);
+  const ytIds = [id1, id2].filter(Boolean);
+
+  const html = AG.visualToHtml(content);
+
+  const btn = document.getElementById('publish-btn');
+  btn.disabled = true;
+  btn.textContent = 'Publicando...';
+
+  try {
+    await callEdge({ action:'new_song', slug, title, category:cat, content:html, youtube_ids:ytIds });
+    closeNew();
+    toast(`✓ "${title}" publicada. Recargando lista...`);
+    await loadIndex();
+  } catch(e) {
+    toast('Error: '+e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✓ Publicar canción';
+  }
+}
+
+// ── DELETE ─────────────────────────────────────────────────────────────────────
+function confirmDel(slug, title) {
+  deleteSlug = slug;
+  deleteTitle = title;
+  document.getElementById('del-name').textContent = `"${title}"`;
+  document.getElementById('del-confirm').value = '';
+
+  const last = localStorage.getItem(DEL_KEY);
+  const cdEl = document.getElementById('del-cd');
+  const execBtn = document.getElementById('del-exec-btn');
+
+  if (last && Date.now() - parseInt(last) < DEL_COOLDOWN) {
+    const rem = Math.ceil((DEL_COOLDOWN - (Date.now()-parseInt(last))) / 1000);
+    const m = Math.floor(rem/60), s = rem%60;
+    cdEl.style.display = 'block';
+    cdEl.textContent = `⏱ Por seguridad, podés eliminar de nuevo en ${m}m ${s}s`;
+    execBtn.disabled = true;
+  } else {
+    cdEl.style.display = 'none';
+    execBtn.disabled = false;
+  }
+
+  document.getElementById('del-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('del-confirm').focus(), 100);
+}
+
+function closeDel() { document.getElementById('del-modal').style.display = 'none'; }
+
+async function doDelete() {
+  const inp = document.getElementById('del-confirm');
+  if (inp.value.trim().toUpperCase() !== 'ELIMINAR') {
+    inp.style.borderColor = '#ff6b6b';
+    setTimeout(() => inp.style.borderColor='', 1200);
+    return;
+  }
+
+  const last = localStorage.getItem(DEL_KEY);
+  if (last && Date.now()-parseInt(last) < DEL_COOLDOWN) {
+    toast('Cooldown activo.', true); closeDel(); return;
+  }
+
+  const btn = document.getElementById('del-exec-btn');
+  btn.disabled = true;
+  btn.textContent = 'Eliminando...';
+
+  try {
+    await callEdge({ action:'delete_song', slug:deleteSlug });
+    localStorage.setItem(DEL_KEY, Date.now().toString());
+    allSongs = allSongs.filter(s => s.slug !== deleteSlug);
+    closeDel();
+    filterSongs();
+    toast(`✓ "${deleteTitle}" eliminada.`);
+  } catch(e) {
+    toast('Error: '+e.message, true);
+    btn.disabled = false;
+    btn.textContent = 'Eliminar';
+  }
+}
+
+// ── UTILS ──────────────────────────────────────────────────────────────────────
+function bgClose(e, id) {
+  if (e.target === document.getElementById(id)) {
+    if (id==='new-modal') closeNew();
+    else if (id==='del-modal') closeDel();
+  }
+}
+</script>
+</body>
+</html>

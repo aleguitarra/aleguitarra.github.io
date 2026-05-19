@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor · Ale Guitarra</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+:root {
+  --red:#CC0000; --bg:#F5EDE3; --text:#3C3A36;
+  --primary:#8B3A0F; --muted:#9C8775; --card:#fff;
+  --border:rgba(139,58,15,0.2); --green:#27AE60;
+  --font-size:14.175px; --line-h:1.4;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:#1a0a02;color:#f0e0d0;min-height:100vh}
+
+/* ── GATE ── */
+#gate{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.gate-box{background:#2a1208;border:1px solid rgba(204,0,0,.25);border-radius:18px;padding:40px 32px;max-width:380px;width:100%;text-align:center}
+.gate-box h1{font-size:22px;color:#f0e0d0;margin-bottom:6px}
+.gate-box p{color:#9C8775;font-size:14px;margin-bottom:28px}
+.gate-box input{width:100%;padding:12px 16px;border-radius:10px;border:1.5px solid rgba(204,0,0,.3);background:#1a0a02;color:#f0e0d0;font-size:15px;outline:none;transition:border-color .2s}
+.gate-box input:focus{border-color:#CC0000}
+.gate-box button{width:100%;margin-top:14px;padding:13px;border-radius:10px;background:#CC0000;color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;transition:opacity .2s}
+.gate-box button:hover{opacity:.85}
+.gate-error{color:#ff6b6b;font-size:13px;margin-top:10px;min-height:18px}
+
+/* ── TOPBAR ── */
+#topbar{position:sticky;top:0;z-index:100;background:#2a1208;border-bottom:1px solid rgba(204,0,0,.2);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.topbar-title{font-size:15px;font-weight:700;color:#f0e0d0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:opacity .2s}
+.btn:hover{opacity:.82}
+.btn-save{background:#27AE60;color:#fff}
+.btn-del{background:transparent;border:1.5px solid #ff6b6b;color:#ff6b6b}
+.btn-back{background:transparent;color:#9C8775;font-size:13px;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+#status{font-size:12px;color:#9C8775;min-width:80px}
+
+/* ── TABS (mobile) ── */
+#tabs{display:none;background:#2a1208;border-bottom:1px solid rgba(204,0,0,.2)}
+#tabs button{flex:1;padding:12px;background:none;border:none;color:#9C8775;font-size:14px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent}
+#tabs button.active{color:#CC0000;border-bottom-color:#CC0000}
+
+/* ── MAIN LAYOUT ── */
+#app{display:none;flex-direction:column;height:100vh}
+#workspace{display:flex;flex:1;overflow:hidden}
+#left-panel,#right-panel{flex:1;overflow:auto;min-width:0}
+#left-panel{border-right:1px solid rgba(204,0,0,.2);display:flex;flex-direction:column}
+
+/* ── EDITOR ── */
+#editor-area{flex:1;display:flex;flex-direction:column;padding:16px}
+#editor{flex:1;width:100%;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:var(--font-size);line-height:var(--line-h);color:#f0e0d0;background:#1a0a02;border:none;resize:none;outline:none;padding:0;white-space:pre;overflow-wrap:normal;overflow-x:auto;min-height:300px}
+.editor-label{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#9C8775;margin-bottom:8px}
+
+/* ── YOUTUBE SECTION ── */
+#yt-section{border-top:1px solid rgba(204,0,0,.15);padding:16px;background:#200c04}
+#yt-section h3{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:#9C8775;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.yt-input{width:100%;padding:9px 12px;border-radius:8px;border:1.5px solid rgba(204,0,0,.2);background:#1a0a02;color:#f0e0d0;font-size:13px;outline:none;margin-bottom:8px;transition:border-color .2s}
+.yt-input:focus{border-color:#CC0000}
+
+/* ── PREVIEW ── */
+#right-panel{background:#e8ddd0;overflow:auto}
+#preview-wrap{padding:12px}
+#preview-label{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#9C8775;margin-bottom:8px;padding:0 4px}
+.song-preview{font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:var(--font-size);line-height:var(--line-h);background:var(--bg);color:var(--text);padding:16px 20px;border-radius:12px;overflow-x:auto;min-height:400px}
+.song-preview .chord-line{color:var(--red);font-weight:bold;white-space:pre;display:block}
+.song-preview .lyric-line{color:var(--text);white-space:pre;display:block}
+.song-preview .empty-line{display:block;height:14px}
+
+/* ── MODALS ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:#2a1208;border:1px solid rgba(204,0,0,.3);border-radius:16px;padding:28px;max-width:440px;width:100%}
+.modal-box h2{font-size:18px;margin-bottom:8px}
+.modal-box p{font-size:14px;color:#9C8775;margin-bottom:16px;line-height:1.5}
+.modal-input{width:100%;padding:11px 14px;border-radius:8px;border:1.5px solid rgba(204,0,0,.3);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;margin-bottom:12px}
+.modal-input:focus{border-color:#CC0000}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+.btn-cancel{background:transparent;color:#9C8775;border:1px solid rgba(150,150,150,.3)}
+.btn-confirm-del{background:#CC0000;color:#fff}
+.cooldown-msg{color:#ff6b6b;font-size:13px;text-align:center;padding:12px;background:rgba(204,0,0,.1);border-radius:8px;margin-bottom:12px}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#27AE60;color:#fff;padding:10px 22px;border-radius:30px;font-size:14px;font-weight:600;z-index:500;transition:transform .3s;pointer-events:none}
+#toast.err{background:#CC0000}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ── MOBILE ── */
+@media(max-width:700px){
+  #workspace{flex-direction:column}
+  #tabs{display:flex}
+  #left-panel,#right-panel{flex:none;min-height:0}
+  #left-panel{border-right:none;border-bottom:1px solid rgba(204,0,0,.2)}
+  #right-panel{background:#e8ddd0}
+  .panel-hide{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div id="gate">
+  <div class="gate-box">
+    <div style="font-size:36px;margin-bottom:12px">🎸</div>
+    <h1>Ale Guitarra · Editor</h1>
+    <p>Área de administración. Ingresá la contraseña para continuar.</p>
+    <input type="password" id="pwd-input" placeholder="Contraseña" autocomplete="current-password">
+    <button onclick="login()">Entrar</button>
+    <div class="gate-error" id="gate-err"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div id="topbar">
+    <a class="btn-back btn" href="/" id="back-link">← Volver</a>
+    <div class="topbar-title" id="song-title-bar">Cargando...</div>
+    <span id="status"></span>
+    <button class="btn btn-del" onclick="confirmDelete()">🗑 Eliminar</button>
+    <button class="btn btn-save" onclick="save()">💾 Guardar</button>
+  </div>
+  <div id="tabs">
+    <button class="active" onclick="showTab('editor')">✏️ Editar</button>
+    <button onclick="showTab('preview')">👁 Preview</button>
+  </div>
+  <div id="workspace">
+    <div id="left-panel">
+      <div id="editor-area">
+        <div class="editor-label">📝 Texto visual — acordes en rojo, letras normales</div>
+        <textarea id="editor" spellcheck="false" placeholder="Cargando canción..."></textarea>
+      </div>
+      <div id="yt-section">
+        <h3>▶ Videos de YouTube (máx. 2)</h3>
+        <input class="yt-input" id="yt1" placeholder="URL o ID del video 1 (ej: dQw4w9WgXcQ)">
+        <input class="yt-input" id="yt2" placeholder="URL o ID del video 2 (opcional)">
+      </div>
+    </div>
+    <div id="right-panel" id="preview-panel">
+      <div id="preview-wrap">
+        <div id="preview-label">👁 Preview — así se ve en la app</div>
+        <div class="song-preview" id="preview"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-bg" id="del-modal" style="display:none">
+  <div class="modal-box">
+    <h2 style="color:#ff6b6b">🗑 Eliminar canción</h2>
+    <p id="del-song-name" style="color:#f0e0d0;font-weight:700;font-size:16px;margin-bottom:8px"></p>
+    <p>Esta acción no se puede deshacer. Escribí <strong style="color:#fff">ELIMINAR</strong> para confirmar.</p>
+    <div class="cooldown-msg" id="del-cooldown" style="display:none"></div>
+    <input class="modal-input" id="del-confirm" placeholder="Escribí ELIMINAR aquí" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn btn-cancel btn" onclick="closeDelete()">Cancelar</button>
+      <button class="btn btn-confirm-del btn" onclick="doDelete()" id="del-btn">Eliminar para siempre</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+// ── CONSTANTS ──────────────────────────────────────────────────────────────────
+const EDGE   = 'https://ntrfkgxqeugjshvicgfj.supabase.co/functions/v1/github-write';
+const ANON   = 'sb_publishable_6_QGimLMb1AXk2nmu7_TKQ_tfWxvsVB';
+const RAW    = 'https://raw.githubusercontent.com/tomicor/aleguitarra-data/main';
+const HASH   = '36cffd6c11af993009fffa98d9fb6fbaecf8a35f7640d13c73fbbd5afad9c3c7';
+const DEL_KEY = 'ag_last_delete';
+const DEL_COOLDOWN = 5 * 60 * 1000; // 5 min
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let currentSlug = '';
+let currentTitle = '';
+let originalHtml = '';
+let originalYtIds = [];
+
+// ── PASSWORD ───────────────────────────────────────────────────────────────────
+async function sha256(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function login() {
+  const pwd = document.getElementById('pwd-input').value;
+  if (!pwd) return;
+  const h = await sha256(pwd);
+  if (h !== HASH) {
+    document.getElementById('gate-err').textContent = 'Contraseña incorrecta.';
+    return;
+  }
+  sessionStorage.setItem('ag_pwd', pwd);
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initApp();
+}
+
+document.getElementById('pwd-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') login();
+});
+
+// Check existing session
+(function() {
+  if (sessionStorage.getItem('ag_pwd')) {
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    initApp();
+  }
+})();
+
+// ── CHORD DETECTION (port of visual_converter.dart) ───────────────────────────
+const AG = {
+  isSingle(s) {
+    if (!s) return false;
+    if (s === 'N.C.' || s === 'NC') return true;
+    // American: C, Am, C7, CM7, C7M, Asus4, Dm7b5, F#m, Bb, etc.
+    if (/^[A-G][b#]?(m|min|maj|dim|aug|sus|add|M)?[0-9]*(sus[0-9]?|add[0-9]?|maj[0-9]?|min[0-9]?|dim[0-9]?|aug[0-9]?|b[0-9]*|#[0-9]*|M|m)?[0-9]*$/.test(s)) return true;
+    // Latin: Do, Rem, Sol, Lam, etc. (full string match)
+    if (/^(Do|Re|Mi|Fa|Sol|La|Si)[b#]?(m|min|maj|dim|aug|sus|add)?[0-9]*$/.test(s)) return true;
+    return false;
+  },
+  isChord(s) {
+    if (!s) return false;
+    if (s === 'N.C.' || s === 'NC' || s === 'N/C') return true;
+    if (s.startsWith('(') || s.endsWith(')')) {
+      const c = s.replace(/[()]/g, '');
+      return !c || this.isSingle(c);
+    }
+    if (s.includes('/')) return s.split('/').every(p => !p || this.isSingle(p));
+    if (s.includes('-') && !s.startsWith('-')) return s.split('-').every(p => !p || this.isSingle(p));
+    return this.isSingle(s);
+  },
+  isChordLine(line) {
+    if (!line) return false;
+    const tokens = line.trim().replace(/\u00A0/g,' ').trim().split(/\s+/).filter(Boolean);
+    return tokens.length > 0 && tokens.every(t => this.isChord(t));
+  },
+  esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  },
+  // Parse HTML → array of {type, text}
+  parseHtml(html) {
+    html = html.replace(/&nbsp;/g,'\u00A0');
+    html = html.replace(/<o:p>[\s\S]*?<\/o:p>/gi,'');
+    html = html.replace(/<br\s*\/?>/gi,'|||');
+    html = html.replace(/<\/div>/gi,'|||');
+    html = html.replace(/<\/p>/gi,'|||');
+    const segs = html.split('|||');
+    const lines = [];
+    for (let seg of segs) {
+      if (!seg.trim()) { lines.push({type:'empty',text:''}); continue; }
+      const hasColor = /color\s*[:=]\s*['"]?(red|#[fF]{2}[0-9a-fA-F]{0,4}|rgb\(\s*255\s*,\s*0)/i.test(seg)
+        || /<font[^>]*color\s*=\s*['"]?red/i.test(seg);
+      let text = seg.replace(/<[^>]+>/g,'').replace(/[\r\n]+/g,'');
+      if (!text.replace(/[\s\u00A0]/g,'')) { lines.push({type:'empty',text:''}); continue; }
+      if (hasColor || this.isChordLine(text)) {
+        lines.push({type:'chord', text});
+      } else {
+        text = text.replace(/\s+$/,'');
+        lines.push({type:'lyric', text});
+      }
+    }
+    while (lines.length && lines[lines.length-1].type==='empty') lines.pop();
+    if (lines.length && lines[lines.length-1].type==='lyric' && lines[lines.length-1].text.length > 100) lines.pop();
+    return lines;
+  },
+  // HTML → visual text (for textarea)
+  htmlToVisual(html) {
+    const lines = this.parseHtml(html);
+    const out = [];
+    let lastEmpty = false;
+    for (const l of lines) {
+      if (l.type==='empty') {
+        if (!lastEmpty) out.push('');
+        lastEmpty = true;
+      } else {
+        lastEmpty = false;
+        out.push(l.text);
+      }
+    }
+    return out.join('\n');
+  },
+  // Visual text → HTML (for saving)
+  visualToHtml(visual) {
+    const lines = visual.split('\n');
+    const out = [];
+    let lastEmpty = false;
+    for (const line of lines) {
+      if (!line.trim()) {
+        if (!lastEmpty) out.push('<div style="text-align: left;"><br/></div>');
+        lastEmpty = true;
+        continue;
+      }
+      lastEmpty = false;
+      if (this.isChordLine(line)) {
+        // Preserve ALL spaces as &nbsp; so positions don't shift
+        const enc = line.replace(/ /g,'&nbsp;').replace(/\u00A0/g,'&nbsp;');
+        out.push(`<div style="text-align: left;"><span style="color: red;">${enc}</span></div>`);
+      } else {
+        out.push(`<div style="text-align: left;">${this.esc(line)}</div>`);
+      }
+    }
+    return out.join('\n');
+  },
+  // Render visual text as preview HTML
+  renderPreview(visual) {
+    if (!visual) return '';
+    const lines = visual.split('\n');
+    const html = [];
+    for (const line of lines) {
+      if (!line) {
+        html.push('<span class="empty-line"></span>');
+        continue;
+      }
+      if (this.isChordLine(line)) {
+        html.push(`<span class="chord-line">${this.esc(line)}</span>`);
+      } else {
+        html.push(`<span class="lyric-line">${this.esc(line)}</span>`);
+      }
+    }
+    return html.join('');
+  }
+};
+
+// ── YOUTUBE ────────────────────────────────────────────────────────────────────
+function extractYtId(input) {
+  const t = (input||'').trim();
+  if (!t) return '';
+  const patterns = [
+    /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+    /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const p of patterns) {
+    const m = t.match(p);
+    if (m) return m[1];
+  }
+  if (/^[a-zA-Z0-9_-]{11}$/.test(t)) return t;
+  return t;
+}
+
+// ── EDGE FUNCTION ──────────────────────────────────────────────────────────────
+async function callEdge(data) {
+  const body = { ...data, password: sessionStorage.getItem('ag_pwd') };
+  const res = await fetch(EDGE, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': ANON,
+      'Authorization': 'Bearer ' + ANON
+    },
+    body: JSON.stringify(body)
+  });
+  const j = await res.json();
+  if (!j.ok) throw new Error(j.error || 'Error en el servidor');
+  return j;
+}
+
+// ── TOAST ──────────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, err=false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = (err ? 'err' : '') + ' show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+function setStatus(msg) {
+  document.getElementById('status').textContent = msg;
+}
+
+// ── TABS (mobile) ──────────────────────────────────────────────────────────────
+function showTab(tab) {
+  const lp = document.getElementById('left-panel');
+  const rp = document.getElementById('right-panel');
+  document.querySelectorAll('#tabs button').forEach((b,i) => {
+    b.classList.toggle('active', (i===0 && tab==='editor') || (i===1 && tab==='preview'));
+  });
+  if (tab === 'editor') {
+    lp.classList.remove('panel-hide');
+    rp.classList.add('panel-hide');
+  } else {
+    lp.classList.add('panel-hide');
+    rp.classList.remove('panel-hide');
+    updatePreview();
+  }
+}
+
+// ── LIVE PREVIEW ───────────────────────────────────────────────────────────────
+let previewTimer;
+document.addEventListener('DOMContentLoaded', () => {
+  const ed = document.getElementById('editor');
+  ed.addEventListener('input', () => {
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(updatePreview, 200);
+  });
+});
+
+function updatePreview() {
+  const visual = document.getElementById('editor').value;
+  document.getElementById('preview').innerHTML = AG.renderPreview(visual);
+}
+
+// ── INIT APP ───────────────────────────────────────────────────────────────────
+function initApp() {
+  const params = new URLSearchParams(location.search);
+  currentSlug = params.get('slug') || '';
+  if (!currentSlug) {
+    toast('Falta el parámetro ?slug=', true);
+    return;
+  }
+  loadSong();
+}
+
+async function loadSong() {
+  setStatus('Cargando...');
+  try {
+    // Fetch index to get title
+    const idxRes = await fetch(`${RAW}/index.json?t=${Date.now()}`);
+    const idx = await idxRes.json();
+    const entry = idx.find(s => s.slug === currentSlug);
+    if (!entry) throw new Error(`Slug no encontrado: ${currentSlug}`);
+
+    currentTitle = entry.title;
+    originalYtIds = entry.youtube_ids || [];
+
+    document.getElementById('song-title-bar').textContent = currentTitle;
+    document.getElementById('del-song-name').textContent = `"${currentTitle}"`;
+    document.title = `${currentTitle} · Editor · Ale Guitarra`;
+    document.getElementById('back-link').href = `/cancion/${currentSlug}`;
+
+    // YouTube IDs
+    document.getElementById('yt1').value = originalYtIds[0] || '';
+    document.getElementById('yt2').value = originalYtIds[1] || '';
+
+    // Fetch song HTML
+    const htmlRes = await fetch(`${RAW}/songs/${currentSlug}.html?t=${Date.now()}`);
+    if (!htmlRes.ok) throw new Error(`HTTP ${htmlRes.status} al cargar canción`);
+    originalHtml = await htmlRes.text();
+
+    const visual = AG.htmlToVisual(originalHtml);
+    document.getElementById('editor').value = visual;
+    updatePreview();
+    setStatus('✓ Listo');
+  } catch(e) {
+    toast('Error al cargar: ' + e.message, true);
+    setStatus('Error');
+  }
+}
+
+// ── SAVE ───────────────────────────────────────────────────────────────────────
+async function save() {
+  setStatus('Guardando...');
+  const saveBtn = document.querySelector('.btn-save');
+  saveBtn.disabled = true;
+
+  try {
+    const visual = document.getElementById('editor').value;
+    const newHtml = AG.visualToHtml(visual);
+
+    const id1 = extractYtId(document.getElementById('yt1').value);
+    const id2 = extractYtId(document.getElementById('yt2').value);
+    const newIds = [id1, id2].filter(Boolean);
+
+    const htmlChanged = newHtml !== originalHtml;
+    const idsStr = ids => JSON.stringify([...(ids||[])].sort());
+    const idsChanged = idsStr(newIds) !== idsStr(originalYtIds);
+
+    if (!htmlChanged && !idsChanged) {
+      toast('Sin cambios que guardar');
+      setStatus('Sin cambios');
+      saveBtn.disabled = false;
+      return;
+    }
+
+    if (htmlChanged) {
+      await callEdge({ action:'edit_song', slug:currentSlug, content:newHtml });
+      originalHtml = newHtml;
+    }
+    if (idsChanged) {
+      await callEdge({ action:'update_youtube', slug:currentSlug, youtube_ids:newIds });
+      originalYtIds = newIds;
+    }
+
+    toast('✓ Guardado y publicado. La app se actualizará.');
+    setStatus('✓ Guardado');
+  } catch(e) {
+    toast('Error al guardar: ' + e.message, true);
+    setStatus('Error');
+  } finally {
+    saveBtn.disabled = false;
+  }
+}
+
+// ── DELETE ─────────────────────────────────────────────────────────────────────
+function confirmDelete() {
+  const last = localStorage.getItem(DEL_KEY);
+  const modal = document.getElementById('del-modal');
+  const cd = document.getElementById('del-cooldown');
+  const inp = document.getElementById('del-confirm');
+  inp.value = '';
+
+  if (last) {
+    const diff = Date.now() - parseInt(last);
+    if (diff < DEL_COOLDOWN) {
+      const rem = Math.ceil((DEL_COOLDOWN - diff) / 1000);
+      const m = Math.floor(rem / 60), s = rem % 60;
+      cd.style.display = 'block';
+      cd.textContent = `⏱ Por seguridad, podés eliminar de nuevo en ${m}m ${s}s`;
+      document.getElementById('del-btn').disabled = true;
+    } else {
+      cd.style.display = 'none';
+      document.getElementById('del-btn').disabled = false;
+    }
+  } else {
+    cd.style.display = 'none';
+    document.getElementById('del-btn').disabled = false;
+  }
+
+  modal.style.display = 'flex';
+  setTimeout(() => inp.focus(), 100);
+}
+
+function closeDelete() {
+  document.getElementById('del-modal').style.display = 'none';
+}
+
+async function doDelete() {
+  const inp = document.getElementById('del-confirm');
+  if (inp.value.trim().toUpperCase() !== 'ELIMINAR') {
+    inp.style.borderColor = '#ff6b6b';
+    setTimeout(() => inp.style.borderColor = '', 1200);
+    return;
+  }
+
+  // Check cooldown again
+  const last = localStorage.getItem(DEL_KEY);
+  if (last && Date.now() - parseInt(last) < DEL_COOLDOWN) {
+    toast('Cooldown activo. Esperá antes de eliminar.', true);
+    closeDelete();
+    return;
+  }
+
+  const btn = document.getElementById('del-btn');
+  btn.disabled = true;
+  btn.textContent = 'Eliminando...';
+  setStatus('Eliminando...');
+
+  try {
+    await callEdge({ action:'delete_song', slug:currentSlug });
+    localStorage.setItem(DEL_KEY, Date.now().toString());
+    closeDelete();
+    toast('Canción eliminada. Redirigiendo...');
+    setTimeout(() => location.href = '/admin/', 1800);
+  } catch(e) {
+    toast('Error al eliminar: ' + e.message, true);
+    btn.disabled = false;
+    btn.textContent = 'Eliminar para siempre';
+    setStatus('Error');
+  }
+}
+
+// Close modal on background click
+document.getElementById('del-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeDelete();
+});
+</script>
+</body>
+</html>
