@@ -455,7 +455,6 @@ async function importFromUrl() {
   const raw = document.getElementById('import-url').value.trim();
   if (!raw) { toast('Pegá un link de aleguitarra.com', true); return; }
 
-  // Normalizar URL: quitar ?m=1, #fragment, etc.
   let url;
   try {
     const u = new URL(raw);
@@ -471,84 +470,105 @@ async function importFromUrl() {
   btn.disabled = true; btn.textContent = 'Cargando...';
   status.textContent = 'Descargando desde el blog...';
 
+  // Probar dos proxies en cascada por si uno falla
+  const proxies = [
+    u => 'https://corsproxy.io/?' + encodeURIComponent(u),
+    u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+  ];
+
   try {
-    // CORS proxy público
-    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
-    const res = await fetch(proxyUrl);
-    if (!res.ok) throw new Error(`HTTP ${res.status} al descargar`);
-    const html = await res.text();
+    let html = '';
+    let lastErr;
+    for (const proxy of proxies) {
+      try {
+        const res = await fetch(proxy(url));
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        html = await res.text();
+        if (html.length > 1000) break; // OK
+        throw new Error('Respuesta vacía');
+      } catch(e) { lastErr = e; html = ''; }
+    }
+    if (!html) throw new Error('No se pudo descargar: ' + (lastErr ? lastErr.message : 'todos los proxies fallaron'));
 
     status.textContent = 'Parseando contenido...';
 
-    // ── Extraer título ─────────────────────────────────────────────────────
+    // ── Parsear con DOMParser (mucho más robusto que regex) ────────────────
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+    // ── Título ─────────────────────────────────────────────────────────────
     let title = '';
-    const blueTitle = html.match(/<h2><span style="color: blue;">([^<]+)<\/span><\/h2>/);
-    if (blueTitle) title = blueTitle[1].trim();
+    // 1° intento: og:title meta tag
+    const og = doc.querySelector('meta[property="og:title"]');
+    if (og) title = og.getAttribute('content').replace(/\s*\.?\s*(LETRA y ACORDES|LETRA Y ACORDES|Tutorial guitarra|Letra y acordes)\.?\s*$/i, '').trim();
+    // 2° intento: H2 con texto azul dentro del post-body
     if (!title) {
-      const titleTag = html.match(/<title>aleguitarra\.com:\s*([^<]+)<\/title>/);
-      if (titleTag) title = titleTag[1].trim();
+      const blueH2 = doc.querySelector('.post-body h2 span[style*="color: blue"], .post-body h2 span[style*="color:#"]');
+      if (blueH2) title = blueH2.textContent.trim();
     }
-    if (!title) throw new Error('No se encontró título en la página');
+    // 3° intento: <title> tag
+    if (!title) {
+      const tt = doc.querySelector('title');
+      if (tt) title = tt.textContent.replace(/^aleguitarra\.com:\s*/i, '').trim();
+    }
+    if (!title) throw new Error('No se encontró título');
 
-    // ── Extraer categoría desde el label de proyección ─────────────────────
-    let category = 'alabanzas'; // default
-    const labelMatch = html.match(/<span class="aleg-projection-label"[^>]*data-label-name="([^"]+)"/i);
-    if (labelMatch) {
-      const lbl = labelMatch[1].toLowerCase();
+    // ── Categoría ──────────────────────────────────────────────────────────
+    let category = 'alabanzas';
+    const labelEl = doc.querySelector('.aleg-projection-label[data-label-name]')
+      || doc.querySelector('.post-labels a, .post-footer-line-2 a');
+    if (labelEl) {
+      const lbl = (labelEl.getAttribute('data-label-name') || labelEl.textContent || '').toLowerCase();
       if (lbl.includes('himno')) category = 'himnos';
-      else if (lbl.includes('escuela') || lbl.includes('dominical') || lbl.includes('niño')) category = 'escuela_dominical';
-      else category = 'alabanzas';
+      else if (lbl.includes('escuela') || lbl.includes('dominical') || lbl.includes('niño') || lbl.includes('nino')) category = 'escuela_dominical';
     }
 
-    // ── Extraer YouTube IDs ────────────────────────────────────────────────
+    // ── YouTube IDs ────────────────────────────────────────────────────────
     const ytIds = [];
     const seen = new Set();
-    const ytPatterns = [
-      /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/g,
-      /youtu\.be\/([a-zA-Z0-9_-]{11})/g,
-      /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/g,
-      /\/([a-zA-Z0-9_-]{11})\.html"\s+width=/g  // iframes locales
-    ];
-    for (const pat of ytPatterns) {
-      let m; while ((m = pat.exec(html))) {
-        const id = m[1];
-        if (!seen.has(id) && ytIds.length < 2) { ytIds.push(id); seen.add(id); }
+    // Buscar en iframes y links
+    const ytEls = doc.querySelectorAll('iframe[src*="youtube"], iframe[src*="youtu.be"], a[href*="youtube"], a[href*="youtu.be"]');
+    ytEls.forEach(el => {
+      const src = el.getAttribute('src') || el.getAttribute('href') || '';
+      const m = src.match(/(?:embed\/|watch\?v=|youtu\.be\/|shorts\/)([a-zA-Z0-9_-]{11})/);
+      if (m && !seen.has(m[1]) && ytIds.length < 2) { ytIds.push(m[1]); seen.add(m[1]); }
+    });
+    // Fallback: buscar IDs en el HTML crudo (por si están en texto)
+    if (ytIds.length === 0) {
+      const allIds = [...html.matchAll(/(?:youtube\.com\/(?:embed|watch\?v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g)];
+      for (const m of allIds) {
+        if (!seen.has(m[1]) && ytIds.length < 2) { ytIds.push(m[1]); seen.add(m[1]); }
       }
     }
 
-    // ── Extraer slug de la URL ─────────────────────────────────────────────
+    // ── Slug ───────────────────────────────────────────────────────────────
     let slug = url.replace(/.*\/([^/]+)\.html$/, '$1');
-    // Limpiar sufijos comunes del blog
     slug = slug.replace(/-tutorial-guitarra$/, '').replace(/-letra-y-acordes$/, '').replace(/-letra-y$/, '');
 
-    // ── Extraer el contenido (post-body entry-content) ─────────────────────
-    const bodyMatch = html.match(/<div class="post-body entry-content"[^>]*>([\s\S]*?)<div class="post-footer"/);
-    if (!bodyMatch) throw new Error('No se encontró el cuerpo de la canción');
-    let body = bodyMatch[1];
+    // ── Contenido: el div.post-body.entry-content ──────────────────────────
+    const postBody = doc.querySelector('.post-body.entry-content, .post-body, [itemprop="articleBody"]');
+    if (!postBody) throw new Error('No se encontró el cuerpo de la canción (post-body)');
 
-    // Quitar la botonera de tonos del blog (no es contenido)
-    body = body.replace(/<div id="botoneraTonos"[\s\S]*?<\/div>/, '');
-    // Quitar título <h2> (ya lo tenemos)
-    body = body.replace(/<h2>[\s\S]*?<\/h2>/g, '');
-    // Quitar iframes de YouTube
-    body = body.replace(/<iframe[\s\S]*?<\/iframe>/g, '');
-    // Quitar descripciones SEO al final (h3 y todo lo que sigue)
-    const h3Idx = body.indexOf('<h3');
-    if (h3Idx > 0) body = body.substring(0, h3Idx);
+    // Clonar para no mutar el DOM original
+    const clone = postBody.cloneNode(true);
 
-    // Convertir el HTML del blog a texto visual usando nuestro parser
-    const visual = AG.htmlToVisual(body);
+    // Remover lo que NO es contenido: botonera, iframes, h2 (título), h3 (descripciones SEO), admin link, post-footer, scripts
+    clone.querySelectorAll('#botoneraTonos, iframe, h2, h3, .admin-link-wrap, .post-footer, .post-share-buttons, .blog-pager, script, style').forEach(el => el.remove());
 
-    // ── Precargar el modal ─────────────────────────────────────────────────
+    // Después del primer h3 NO hay más letra → cortar todo lo que sigue al primer h3 (ya removimos h3, pero las descripciones SEO suelen estar en divs después)
+    // Como ya quitamos los h3, asumimos que el contenido útil es lo que queda
+
+    const contentHtml = clone.innerHTML;
+    const visual = AG.htmlToVisual(contentHtml);
+
+    // ── Precargar modal ────────────────────────────────────────────────────
     document.getElementById('new-title').value = title;
     document.getElementById('new-cat').value = category;
-    onCatChange(); // muestra el campo de número si aplica
+    onCatChange();
     document.getElementById('new-slug').value = slug;
     document.getElementById('new-content').value = visual;
     document.getElementById('new-yt1').value = ytIds[0] || '';
     document.getElementById('new-yt2').value = ytIds[1] || '';
 
-    // Detectar número del slug (-him-43, -al-329)
     const numMatch = slug.match(/-(?:him|al)-(\d+)/);
     if (numMatch) document.getElementById('new-number').value = numMatch[1];
 
