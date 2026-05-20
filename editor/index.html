@@ -114,6 +114,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   <div id="topbar">
     <a class="btn-back btn" href="/" id="back-link">← Volver</a>
     <div class="topbar-title" id="song-title-bar">Cargando...</div>
+    <span id="stanza-count" style="font-size:12px;color:#9C8775;padding:0 8px;border-left:1px solid rgba(204,0,0,.2);border-right:1px solid rgba(204,0,0,.2)">Estrofas: —</span>
+    <button class="btn" style="background:#8B3A0F;color:#fff;font-size:12px" onclick="compactStanzas()" title="Quita líneas vacías sueltas entre acorde-letra para que el proyector no se rompa">🧹 Compactar</button>
     <span id="status"></span>
     <button class="btn btn-del" onclick="confirmDelete()">🗑 Eliminar</button>
     <button class="btn btn-save" onclick="save()">💾 Guardar</button>
@@ -125,7 +127,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   <div id="workspace">
     <div id="left-panel">
       <div id="editor-area">
-        <div class="editor-label">📝 Texto visual — acordes en rojo, letras normales</div>
+        <div class="editor-label">📝 Texto visual — acordes en rojo, letras normales. Prefijá líneas con <b style="color:#fff">*</b> para negrita (coros)</div>
         <textarea id="editor" spellcheck="false" placeholder="Cargando canción..."></textarea>
       </div>
       <div id="yt-section">
@@ -235,32 +237,36 @@ const AG = {
   },
   isChordLine(line) {
     if (!line) return false;
+    // Ignorar marcador de negrita al principio
+    if (line.startsWith('*')) line = line.substring(1);
     const tokens = line.trim().replace(/\u00A0/g,' ').trim().split(/\s+/).filter(Boolean);
     return tokens.length > 0 && tokens.every(t => this.isChord(t));
   },
   esc(s) {
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   },
-  // Parse HTML → array of {type, text}
+  // Parse HTML → array of {type, text, bold}
   parseHtml(html) {
     html = html.replace(/&nbsp;/g,'\u00A0');
     html = html.replace(/<o:p>[\s\S]*?<\/o:p>/gi,'');
-    html = html.replace(/<br\s*\/?>/gi,'|||');
+    // Capturar <br> con cualquier atributo: <br/>, <br>, <br style="..."/>, <br class="..."/>
+    html = html.replace(/<br\b[^>]*>/gi,'|||');
     html = html.replace(/<\/div>/gi,'|||');
     html = html.replace(/<\/p>/gi,'|||');
     const segs = html.split('|||');
     const lines = [];
     for (let seg of segs) {
-      if (!seg.trim()) { lines.push({type:'empty',text:''}); continue; }
+      if (!seg.trim()) { lines.push({type:'empty',text:'',bold:false}); continue; }
       const hasColor = /color\s*[:=]\s*['"]?(red|#[fF]{2}[0-9a-fA-F]{0,4}|rgb\(\s*255\s*,\s*0)/i.test(seg)
         || /<font[^>]*color\s*=\s*['"]?red/i.test(seg);
+      const isBold = /<b\b[^>]*>/i.test(seg);
       let text = seg.replace(/<[^>]+>/g,'').replace(/[\r\n]+/g,'');
-      if (!text.replace(/[\s\u00A0]/g,'')) { lines.push({type:'empty',text:''}); continue; }
+      if (!text.replace(/[\s\u00A0]/g,'')) { lines.push({type:'empty',text:'',bold:false}); continue; }
       if (hasColor || this.isChordLine(text)) {
-        lines.push({type:'chord', text});
+        lines.push({type:'chord', text, bold:isBold});
       } else {
         text = text.replace(/\s+$/,'');
-        lines.push({type:'lyric', text});
+        lines.push({type:'lyric', text, bold:isBold});
       }
     }
     while (lines.length && lines[lines.length-1].type==='empty') lines.pop();
@@ -268,6 +274,7 @@ const AG = {
     return lines;
   },
   // HTML → visual text (for textarea)
+  // Las líneas con <b> se prefijan con "*" como marcador. Al guardar se vuelven <b>.
   htmlToVisual(html) {
     const lines = this.parseHtml(html);
     const out = [];
@@ -278,50 +285,69 @@ const AG = {
         lastEmpty = true;
       } else {
         lastEmpty = false;
-        out.push(l.text);
+        // Prefijo "*" para líneas en negrita (coros). Se preserva en el guardado.
+        out.push((l.bold ? '*' : '') + l.text);
       }
     }
     return out.join('\n');
   },
   // Visual text → HTML (for saving)
+  // Matches the format of the original songs: outer wrapper + inner <div>...</div>
   visualToHtml(visual) {
     const lines = visual.split('\n');
-    const out = [];
+    const inner = [];
     let lastEmpty = false;
-    for (const line of lines) {
+    for (let line of lines) {
       if (!line.trim()) {
-        if (!lastEmpty) out.push('<div style="text-align: left;"><br/></div>');
+        if (!lastEmpty) inner.push('<div><br/></div>');
         lastEmpty = true;
         continue;
       }
       lastEmpty = false;
+      // Detectar y consumir el marcador "*" de negrita
+      let bold = false;
+      if (line.startsWith('*')) { bold = true; line = line.substring(1); }
+
       if (this.isChordLine(line)) {
-        // Preserve ALL spaces as &nbsp; so positions don't shift
-        const enc = line.replace(/ /g,'&nbsp;').replace(/\u00A0/g,'&nbsp;');
-        out.push(`<div style="text-align: left;"><span style="color: red;">${enc}</span></div>`);
+        // Replicar el patrón EXACTO de las canciones viejas:
+        // posición par → &nbsp;, posición impar → espacio regular.
+        // Esto reproduce idéntico el patrón "&nbsp; &nbsp; G &nbsp;" que
+        // genera Blogger, evitando el corrimiento de 2 caracteres en el viewer.
+        const normalized = line.replace(/\u00A0/g, ' ');
+        let enc = '';
+        for (let i = 0; i < normalized.length; i++) {
+          const c = normalized[i];
+          if (c === ' ') {
+            enc += (i % 2 === 0) ? '&nbsp;' : ' ';
+          } else {
+            // Escape HTML chars individuales
+            if (c === '&') enc += '&amp;';
+            else if (c === '<') enc += '&lt;';
+            else if (c === '>') enc += '&gt;';
+            else enc += c;
+          }
+        }
+        if (bold) inner.push(`<div><span style="color: red;"><b>${enc}</b></span></div>`);
+        else inner.push(`<div><span style="color: red;">${enc}</span></div>`);
       } else {
-        out.push(`<div style="text-align: left;">${this.esc(line)}</div>`);
+        const esc = this.esc(line);
+        if (bold) inner.push(`<div><b>${esc}</b></div>`);
+        else inner.push(`<div>${esc}</div>`);
       }
     }
-    return out.join('\n');
+    return `<div style="text-align: left;">\n${inner.join('\n')}\n</div>`;
   },
   // Render visual text as preview HTML
   renderPreview(visual) {
     if (!visual) return '';
-    const lines = visual.split('\n');
-    const html = [];
-    for (const line of lines) {
-      if (!line) {
-        html.push('<span class="empty-line"></span>');
-        continue;
-      }
-      if (this.isChordLine(line)) {
-        html.push(`<span class="chord-line">${this.esc(line)}</span>`);
-      } else {
-        html.push(`<span class="lyric-line">${this.esc(line)}</span>`);
-      }
-    }
-    return html.join('');
+    return visual.split('\n').map(line => {
+      if (!line) return '<span class="empty-line"></span>';
+      let bold = false;
+      if (line.startsWith('*')) { bold = true; line = line.substring(1); }
+      const b = bold ? ' style="font-weight:bold"' : '';
+      if (this.isChordLine(line)) return `<span class="chord-line"${b}>${this.esc(line)}</span>`;
+      return `<span class="lyric-line"${b}>${this.esc(line)}</span>`;
+    }).join('');
   }
 };
 
@@ -404,6 +430,73 @@ document.addEventListener('DOMContentLoaded', () => {
 function updatePreview() {
   const visual = document.getElementById('editor').value;
   document.getElementById('preview').innerHTML = AG.renderPreview(visual);
+  updateStanzaCount(visual);
+}
+
+// Cuenta cuántas estrofas tendrá el proyector con la lógica nueva:
+// divide en 2+ vacías consecutivas O cuando un slide acumula 8+ líneas de letra.
+function countStanzas(visual) {
+  if (!visual) return 0;
+  const lines = visual.split('\n');
+  let slides = 0;
+  let curLyrics = 0;
+  let consecutiveEmpties = 0;
+  for (const line of lines) {
+    if (!line.trim()) {
+      consecutiveEmpties++;
+      if (consecutiveEmpties >= 2 && curLyrics > 0) {
+        slides++;
+        curLyrics = 0;
+        consecutiveEmpties = 0;
+      }
+    } else if (!AG.isChordLine(line)) {
+      consecutiveEmpties = 0;
+      curLyrics++;
+      if (curLyrics >= 8) { slides++; curLyrics = 0; }
+    } else {
+      consecutiveEmpties = 0;
+    }
+  }
+  if (curLyrics > 0) slides++;
+  return slides;
+}
+
+function updateStanzaCount(visual) {
+  const n = countStanzas(visual);
+  const el = document.getElementById('stanza-count');
+  el.textContent = `Estrofas: ${n}`;
+  // Color visual: rojo si hay muchas (>10), verde si está bien (3-8)
+  el.style.color = n > 10 ? '#ff6b6b' : (n >= 3 && n <= 8 ? '#27AE60' : '#9C8775');
+}
+
+// Compacta visual: quita vacías sueltas (1) y colapsa 2+ vacías a una sola.
+// Esto hace que el proyector de la app divida correctamente por estrofa.
+function compactVisual(visual) {
+  const lines = visual.split('\n');
+  const out = [];
+  let i = 0;
+  while (i < lines.length) {
+    if (!lines[i].trim()) {
+      let cnt = 0, j = i;
+      while (j < lines.length && !lines[j].trim()) { cnt++; j++; }
+      if (cnt >= 2) out.push('');
+      i = j;
+      continue;
+    }
+    out.push(lines[i]);
+    i++;
+  }
+  while (out.length && !out[0].trim()) out.shift();
+  while (out.length && !out[out.length-1].trim()) out.pop();
+  return out.join('\n');
+}
+
+// Compactar manual (botón)
+function compactStanzas() {
+  const ed = document.getElementById('editor');
+  ed.value = compactVisual(ed.value);
+  updatePreview();
+  toast(`✓ Compactado. Estrofas ahora: ${countStanzas(ed.value)}`);
 }
 
 // ── INIT APP ───────────────────────────────────────────────────────────────────
