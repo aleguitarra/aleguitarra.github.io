@@ -115,7 +115,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     <a class="btn-back btn" href="/" id="back-link">← Volver</a>
     <div class="topbar-title" id="song-title-bar">Cargando...</div>
     <span id="stanza-count" style="font-size:12px;color:#9C8775;padding:0 8px;border-left:1px solid rgba(204,0,0,.2);border-right:1px solid rgba(204,0,0,.2)">Estrofas: —</span>
-    <button class="btn" style="background:#8B3A0F;color:#fff;font-size:12px" onclick="compactStanzas()" title="Quita líneas vacías sueltas entre acorde-letra para que el proyector no se rompa">🧹 Compactar</button>
     <span id="status"></span>
     <button class="btn btn-del" onclick="confirmDelete()">🗑 Eliminar</button>
     <button class="btn btn-save" onclick="save()">💾 Guardar</button>
@@ -194,7 +193,7 @@ async function login() {
     document.getElementById('gate-err').textContent = 'Contraseña incorrecta.';
     return;
   }
-  sessionStorage.setItem('ag_pwd', pwd);
+  localStorage.setItem('ag_pwd', pwd);
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   initApp();
@@ -206,7 +205,7 @@ document.getElementById('pwd-input').addEventListener('keydown', e => {
 
 // Check existing session
 (function() {
-  if (sessionStorage.getItem('ag_pwd')) {
+  if (localStorage.getItem('ag_pwd')) {
     document.getElementById('gate').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
     initApp();
@@ -371,7 +370,7 @@ function extractYtId(input) {
 
 // ── EDGE FUNCTION ──────────────────────────────────────────────────────────────
 async function callEdge(data) {
-  const body = { ...data, password: sessionStorage.getItem('ag_pwd') };
+  const body = { ...data, password: localStorage.getItem('ag_pwd') };
   const res = await fetch(EDGE, {
     method: 'POST',
     headers: {
@@ -467,36 +466,6 @@ function updateStanzaCount(visual) {
   el.textContent = `Estrofas: ${n}`;
   // Color visual: rojo si hay muchas (>10), verde si está bien (3-8)
   el.style.color = n > 10 ? '#ff6b6b' : (n >= 3 && n <= 8 ? '#27AE60' : '#9C8775');
-}
-
-// Compacta visual: quita vacías sueltas (1) y colapsa 2+ vacías a una sola.
-// Esto hace que el proyector de la app divida correctamente por estrofa.
-function compactVisual(visual) {
-  const lines = visual.split('\n');
-  const out = [];
-  let i = 0;
-  while (i < lines.length) {
-    if (!lines[i].trim()) {
-      let cnt = 0, j = i;
-      while (j < lines.length && !lines[j].trim()) { cnt++; j++; }
-      if (cnt >= 2) out.push('');
-      i = j;
-      continue;
-    }
-    out.push(lines[i]);
-    i++;
-  }
-  while (out.length && !out[0].trim()) out.shift();
-  while (out.length && !out[out.length-1].trim()) out.pop();
-  return out.join('\n');
-}
-
-// Compactar manual (botón)
-function compactStanzas() {
-  const ed = document.getElementById('editor');
-  ed.value = compactVisual(ed.value);
-  updatePreview();
-  toast(`✓ Compactado. Estrofas ahora: ${countStanzas(ed.value)}`);
 }
 
 // ── INIT APP ───────────────────────────────────────────────────────────────────

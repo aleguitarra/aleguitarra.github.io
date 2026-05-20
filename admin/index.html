@@ -154,7 +154,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 </div>
 
 <!-- NEW SONG MODAL -->
-<div class="modal-bg" id="new-modal" style="display:none" onclick="bgClose(event,'new-modal')">
+<div class="modal-bg" id="new-modal" style="display:none">
   <div class="modal-box">
     <h2>🎵 Nueva canción</h2>
 
@@ -198,7 +198,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
         <span>Contenido</span>
         <span style="display:flex;gap:8px;align-items:center">
           <span id="new-stanza-count" style="font-size:11px;color:#9C8775">Estrofas: 0</span>
-          <button type="button" onclick="compactNewContent()" style="font-size:11px;padding:3px 8px;background:#8B3A0F;color:#fff;border:none;border-radius:6px;cursor:pointer">🧹 Compactar</button>
         </span>
       </label>
       <textarea id="new-content" placeholder="Am  C  G  F&#10;Todo lo que soy alabe al Señor&#10;&#10;*Am  C  G&#10;*Letra del coro (en negrita por el *)" oninput="updateNewPreview()"></textarea>
@@ -269,13 +268,13 @@ async function login() {
   if (!pwd) return;
   const h = await sha256(pwd);
   if (h !== HASH) { document.getElementById('gate-err').textContent = 'Contraseña incorrecta.'; return; }
-  sessionStorage.setItem('ag_pwd', pwd);
+  localStorage.setItem('ag_pwd', pwd);
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   loadIndex();
 }
 document.getElementById('pwd-input').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
-if (sessionStorage.getItem('ag_pwd')) {
+if (localStorage.getItem('ag_pwd')) {
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   loadIndex();
@@ -424,7 +423,7 @@ async function callEdge(data) {
   const r = await fetch(EDGE, {
     method:'POST',
     headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+ANON},
-    body: JSON.stringify({...data, password: sessionStorage.getItem('ag_pwd')})
+    body: JSON.stringify({...data, password: localStorage.getItem('ag_pwd')})
   });
   const j = await r.json();
   if (!j.ok) throw new Error(j.error||'Error servidor');
@@ -619,33 +618,6 @@ function genSlug() {
     else if (cat === 'alabanzas') slug += `-al-${num}`;
   }
   document.getElementById('new-slug').value = slug;
-}
-
-// Compacta visual: quita vacías sueltas, colapsa 2+ a una
-function compactVisual(visual) {
-  const lines = visual.split('\n');
-  const out = [];
-  let i = 0;
-  while (i < lines.length) {
-    if (!lines[i].trim()) {
-      let cnt = 0, j = i;
-      while (j < lines.length && !lines[j].trim()) { cnt++; j++; }
-      if (cnt >= 2) out.push('');
-      i = j; continue;
-    }
-    out.push(lines[i]); i++;
-  }
-  while (out.length && !out[0].trim()) out.shift();
-  while (out.length && !out[out.length-1].trim()) out.pop();
-  return out.join('\n');
-}
-
-// Compactar contenido en el modal nuevo (botón)
-function compactNewContent() {
-  const ta = document.getElementById('new-content');
-  ta.value = compactVisual(ta.value);
-  updateNewPreview();
-  toast(`✓ Compactado. Estrofas: ${countStanzas(ta.value)}`);
 }
 
 function countStanzas(visual) {
