@@ -248,7 +248,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 const EDGE  = 'https://ntrfkgxqeugjshvicgfj.supabase.co/functions/v1/github-write';
 const ANON  = 'sb_publishable_6_QGimLMb1AXk2nmu7_TKQ_tfWxvsVB';
 const RAW   = 'https://raw.githubusercontent.com/tomicor/aleguitarra-data/main';
-const HASH  = '36cffd6c11af993009fffa98d9fb6fbaecf8a35f7640d13c73fbbd5afad9c3c7';
+// HASH removido: la contrasena ahora se valida en el servidor (Edge Function)
 const DEL_KEY      = 'ag_last_delete';
 const DEL_COOLDOWN = 5 * 60 * 1000;
 
@@ -266,12 +266,20 @@ async function sha256(text) {
 async function login() {
   const pwd = document.getElementById('pwd-input').value;
   if (!pwd) return;
-  const h = await sha256(pwd);
-  if (h !== HASH) { document.getElementById('gate-err').textContent = 'Contraseña incorrecta.'; return; }
-  localStorage.setItem('ag_pwd', pwd);
-  document.getElementById('gate').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  loadIndex();
+  document.getElementById('gate-err').textContent = 'Verificando…';
+  try {
+    const r = await fetch(EDGE, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+ANON},
+      body: JSON.stringify({ action:'verify', password: pwd })
+    });
+    if (!(await r.json()).ok) { document.getElementById('gate-err').textContent = 'Contraseña incorrecta.'; return; }
+    localStorage.setItem('ag_pwd', pwd);
+    document.getElementById('gate-err').textContent = '';
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadIndex();
+  } catch { document.getElementById('gate-err').textContent = 'Error de conexión.'; }
 }
 document.getElementById('pwd-input').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
 if (localStorage.getItem('ag_pwd')) {
