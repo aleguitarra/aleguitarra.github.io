@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<!--
+  Receptor Chromecast de Ale Guitarra.
+  Esta página corre EN EL TELEVISOR cuando la app manda una canción.
+  Hostearla en GitHub Pages (p.ej. https://aleguitarra.github.io/cast.html)
+  y registrarla como "Custom Receiver" en https://cast.google.com/publish.
+  Ver INSTRUCCIONES-CHROMECAST.txt.
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ale Guitarra</title>
+<script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+<style>
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+    background: linear-gradient(135deg, #1A0A00 0%, #2C1810 55%, #0D0503 100%);
+    color: #fff; font-family: 'Trebuchet MS', Verdana, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #title {
+    position: fixed; top: 3vh; left: 10vw; right: 10vw; text-align: center;
+    font-size: 2.2vh; color: rgba(255,255,255,0.35);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #stage {
+    max-width: 86vw; max-height: 80vh; text-align: center;
+    line-height: 1.45; font-weight: 600;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  }
+  #stage .b { font-weight: 800; color: #FFD98A; }
+  #counter {
+    position: fixed; bottom: 3vh; right: 3vw;
+    font-size: 2.2vh; color: rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.08); border-radius: 2vh; padding: 0.6vh 1.6vh;
+  }
+  #idle {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2vh;
+  }
+  #idle .logo { font-size: 8vh; }
+  #idle .msg { font-size: 3vh; color: rgba(255,255,255,0.55); }
+</style>
+</head>
+<body>
+<div id="idle"><div class="logo">&#127928;</div><div class="msg">Ale Guitarra &mdash; eleg&iacute; una canci&oacute;n en tu celular</div></div>
+<div id="title"></div>
+<div id="stage"></div>
+<div id="counter"></div>
+<script>
+  var NS = 'urn:x-cast:com.corapps.aleguitarra';
+  var context = cast.framework.CastReceiverContext.getInstance();
+  var slides = [], idx = 0, songTitle = '';
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function render() {
+    var idle = document.getElementById('idle');
+    var stage = document.getElementById('stage');
+    var title = document.getElementById('title');
+    var counter = document.getElementById('counter');
+    if (!slides.length) {
+      idle.style.display = 'flex';
+      stage.innerHTML = ''; title.textContent = ''; counter.textContent = '';
+      return;
+    }
+    idle.style.display = 'none';
+    var slide = slides[Math.max(0, Math.min(idx, slides.length - 1))];
+    // Tamaño de letra según cantidad de líneas (como el proyector del teléfono)
+    var n = slide.length;
+    var size = n <= 2 ? 9 : n <= 4 ? 7.5 : n <= 6 ? 6.5 : n <= 8 ? 5.5 : n <= 10 ? 4.8 : 4.2; // vh
+    stage.style.fontSize = size + 'vh';
+    stage.innerHTML = slide.map(function (l) {
+      var cls = l.b ? ' class="b"' : '';
+      return '<div' + cls + '>' + esc(l.t || '') + '</div>';
+    }).join('');
+    title.textContent = songTitle;
+    counter.textContent = (idx + 1) + ' / ' + slides.length;
+  }
+
+  context.addCustomMessageListener(NS, function (ev) {
+    var m = ev.data || {};
+    if (m.type === 'load') {
+      songTitle = m.title || '';
+      slides = m.slides || [];
+      idx = m.index || 0;
+      render();
+    } else if (m.type === 'show') {
+      idx = m.index || 0;
+      render();
+    } else if (m.type === 'close') {
+      slides = []; idx = 0; songTitle = '';
+      render();
+      context.stop();
+    }
+  });
+
+  // Avisar al celular que la página ya cargó (por si mandó la canción antes)
+  context.addEventListener(cast.framework.system.EventType.READY, function () {
+    try { context.sendCustomMessage(NS, undefined, { type: 'ready' }); } catch (e) {}
+  });
+
+  // El cancionero no reproduce media: desactivar el timeout de inactividad
+  var options = new cast.framework.CastReceiverOptions();
+  options.disableIdleTimeout = true;
+  context.start(options);
+</script>
+</body>
+</html>
