@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ale Guitarra · Cancionero cristiano para guitarra</title>
-<meta name="description" content="Más de 800 canciones cristianas con acordes para guitarra. Alabanzas, himnos y escuela dominical. Descargá la app gratis.">
+<meta name="description" content="Más de 900 canciones cristianas con acordes para guitarra, en español, guaraní y portugués. Alabanzas, himnos y Escuela Bíblica. Proyectá al TV, metrónomo, modo oscuro. Descargá la app gratis.">
 <meta name="theme-color" content="#0F0805">
 <link rel="icon" href="/icon.png" type="image/png">
 <link rel="apple-touch-icon" href="/icon.png">
 
 <!-- Open Graph -->
 <meta property="og:title" content="Ale Guitarra · Cancionero cristiano">
-<meta property="og:description" content="Más de 800 canciones con acordes para guitarra. Alabanzas, himnos y escuela dominical. Gratis.">
+<meta property="og:description" content="Más de 900 canciones con acordes para guitarra, en español, guaraní y portugués. Proyectá al TV con tu celular de control. Gratis y sin publicidad.">
 <meta property="og:image" content="https://aleguitarra.github.io/og-banner.png">
 <meta property="og:image:secure_url" content="https://aleguitarra.github.io/og-banner.png">
 <meta property="og:image:type" content="image/png">
@@ -384,6 +384,142 @@
     line-height: 1.5;
   }
 
+  /* ============ SHOWCASE (mockup del viewer) ============ */
+  .showcase {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(32px, 5vw, 72px);
+    align-items: center;
+  }
+  .showcase-sub {
+    color: var(--muted);
+    font-size: clamp(15px, 1.6vw, 17px);
+    line-height: 1.6;
+    margin: 0 0 24px;
+  }
+  .showcase-points { list-style: none; }
+  .showcase-points li {
+    position: relative;
+    padding: 9px 0 9px 34px;
+    color: var(--cream-dim);
+    font-size: 15px;
+  }
+  .showcase-points li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    top: 7px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--gold);
+    background: rgba(184, 101, 29, 0.18);
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+  }
+  .phone-wrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding: 24px 0;
+  }
+  .phone {
+    width: min(300px, 82vw);
+    background: #191210;
+    border: 1px solid rgba(212, 132, 62, 0.3);
+    border-radius: 38px;
+    padding: 16px 16px 18px;
+    box-shadow:
+      0 30px 80px rgba(0, 0, 0, 0.55),
+      0 0 60px rgba(184, 101, 29, 0.18),
+      inset 0 1px 0 rgba(245, 230, 211, 0.06);
+    transform: rotate(2.5deg);
+    transition: transform 0.4s ease;
+  }
+  .phone:hover { transform: rotate(0deg) scale(1.015); }
+  .phone-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 4px 12px;
+    border-bottom: 1px solid rgba(212, 132, 62, 0.14);
+    margin-bottom: 12px;
+  }
+  .phone-back { color: var(--muted); font-size: 22px; line-height: 1; }
+  .phone-song-title {
+    flex: 1;
+    color: var(--cream);
+    font-size: 13.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .phone-heart { color: #E74C3C; font-size: 15px; }
+  .phone-song {
+    font-family: 'Courier New', ui-monospace, monospace;
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: var(--cream-dim);
+    overflow-x: hidden;
+    white-space: pre;
+    margin: 0 0 12px;
+    padding: 2px 4px;
+  }
+  .phone-song .ch { color: #FF8A75; font-weight: 700; }
+  .phone-chips { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 4px; }
+  .phone-chips span {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--gold);
+    background: rgba(184, 101, 29, 0.14);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 100px;
+  }
+  .float-chip {
+    position: absolute;
+    background: linear-gradient(155deg, var(--card-2) 0%, var(--card) 100%);
+    border: 1px solid var(--border-strong);
+    color: var(--cream);
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: 14px;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+    white-space: nowrap;
+    animation: chipFloat 5s ease-in-out infinite;
+  }
+  .float-chip-1 { top: -2px; left: max(-12px, 1%); }
+  .float-chip-2 { bottom: -2px; right: max(-12px, 1%); animation-delay: 2.5s; }
+  .category-flag {
+    width: 54px;
+    height: 36px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  }
+  @keyframes chipFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-7px); }
+  }
+
+  /* ============ SCROLL REVEAL ============ */
+  .reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .hero-logo, .float-chip, .hero-badge::before { animation: none; }
+  }
+
   /* ============ FINAL CTA ============ */
   .cta-section {
     max-width: 920px;
@@ -451,6 +587,12 @@
     .section { padding: 56px 20px; }
     .feature { padding: 26px 22px; }
     .category { padding: 28px 20px; }
+    .showcase { grid-template-columns: 1fr; }
+    .showcase-text .section-title { text-align: center !important; }
+    .showcase-sub, .showcase-points { max-width: 420px; margin-left: auto; margin-right: auto; }
+    .showcase-sub { text-align: center; }
+    .phone { transform: none; }
+    .float-chip { font-size: 11.5px; padding: 8px 12px; }
   }
   @media (max-width: 380px) {
     .stats { grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -474,11 +616,11 @@
 <!-- ============ HERO ============ -->
 <section class="hero">
   <img src="/logo.png" alt="Ale Guitarra" class="hero-logo">
-  <div class="hero-badge">Más de 800 canciones</div>
+  <div class="hero-badge">Más de 900 canciones · 3 idiomas</div>
   <h1>El cancionero<br>de tu iglesia,<br>en el bolsillo</h1>
   <p class="hero-tagline">
-    Alabanzas, himnos y canciones de escuela dominical con acordes para guitarra.
-    Buscás, transponés y compartís — todo gratis y sin internet.
+    Alabanzas, himnos, Escuela Bíblica y cancioneros en guaraní y portugués,
+    con acordes para guitarra. Buscás, transponés, proyectás al TV — todo gratis y sin internet.
   </p>
 
   <div id="descargar" class="download-row">
@@ -505,12 +647,12 @@
 
   <div class="stats">
     <div class="stat">
-      <div class="stat-num" id="total-songs" data-target="844">844</div>
+      <div class="stat-num" id="total-songs" data-target="915">915</div>
       <div class="stat-label">Canciones</div>
     </div>
     <div class="stat">
       <div class="stat-num">3</div>
-      <div class="stat-label">Categorías</div>
+      <div class="stat-label">Idiomas</div>
     </div>
     <div class="stat">
       <div class="stat-num">100%</div>
@@ -532,12 +674,22 @@
     <div class="feature">
       <div class="feature-icon">🎼</div>
       <h3>Acordes y letra</h3>
-      <p>Acordes alineados sobre la letra, listos para tocar. Tipografía clara y modo proyector incluido.</p>
+      <p>Acordes alineados sobre la letra, listos para tocar. Cifrado latino o americano, a tu elección.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📺</div>
+      <h3>Proyectá en el TV</h3>
+      <p>Transmití la letra a un Chromecast y usá el celular de control remoto. El que pasa las estrofas siempre ve cuál viene.</p>
     </div>
     <div class="feature">
       <div class="feature-icon">🎚️</div>
       <h3>Transposición</h3>
-      <p>Cambiá la tonalidad con un toque. Adaptá la canción a tu voz o al equipo.</p>
+      <p>Subí o bajá el tono con un toque. La app recuerda el tono elegido para cada canción.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">⏱️</div>
+      <h3>Metrónomo</h3>
+      <p>Un click discreto para no perder el pulso. La velocidad se guarda por canción.</p>
     </div>
     <div class="feature">
       <div class="feature-icon">📋</div>
@@ -552,20 +704,52 @@
     <div class="feature">
       <div class="feature-icon">📡</div>
       <h3>Funciona sin internet</h3>
-      <p>Descargá una vez y tenelas siempre disponibles. Las actualizaciones se sincronizan solas.</p>
+      <p>Descargá una vez y tenelas siempre disponibles. Las canciones nuevas se sincronizan solas.</p>
     </div>
     <div class="feature">
-      <div class="feature-icon">📺</div>
-      <h3>Auto-scroll y proyector</h3>
-      <p>La pantalla se desplaza sola al ritmo que elijas. Perfecto para proyectar en culto.</p>
+      <div class="feature-icon">🌙</div>
+      <h3>Pensada para el culto</h3>
+      <p>Modo oscuro cálido, auto-scroll al ritmo que elijas y pantalla siempre encendida mientras tocás.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SHOWCASE ============ -->
+<section class="section" style="padding-top: 0;">
+  <div class="showcase">
+    <div class="showcase-text">
+      <h2 class="section-title" style="text-align: left;">Así se ve<br>en el culto</h2>
+      <p class="showcase-sub">Los acordes en su lugar exacto sobre la letra, en una pantalla que no se apaga mientras tocás.</p>
+      <ul class="showcase-points">
+        <li>Tono, cifrado y metrónomo guardados por canción</li>
+        <li>Modo proyector horizontal para atriles y TV</li>
+        <li>Control remoto con vista de la próxima estrofa</li>
+      </ul>
+    </div>
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-bar"><span class="phone-back">‹</span><span class="phone-song-title">Vine a alabar a Dios</span><span class="phone-heart">♥</span></div>
+        <pre class="phone-song"><span class="ch">        D              A</span>
+Vine a alabar a Dios,
+<span class="ch">        Bm             F#m</span>
+vine a alabar a Dios,
+<span class="ch">        G      D       A         D</span>
+vine a alabar su nombre, hoy.
+
+<span class="ch">   Bm                F#m</span>
+Él es mi Dios y siempre vivirá,</pre>
+        <div class="phone-chips"><span>Tono: D</span><span>♩ 96</span><span>Latino</span></div>
+      </div>
+      <div class="float-chip float-chip-1">📺 Proyectando en TV</div>
+      <div class="float-chip float-chip-2">⏱ Metrónomo · 96 BPM</div>
     </div>
   </div>
 </section>
 
 <!-- ============ CATEGORIES ============ -->
 <section class="section" style="padding-top: 0;">
-  <h2 class="section-title">Tres cancioneros, una sola app</h2>
-  <p class="section-sub">Toda la música que tu congregación canta cada semana.</p>
+  <h2 class="section-title">Cinco cancioneros, tres idiomas</h2>
+  <p class="section-sub">Toda la música que tu congregación canta cada semana — en español, guaraní y portugués.</p>
 
   <div class="categories">
     <div class="category">
@@ -580,8 +764,35 @@
     </div>
     <div class="category">
       <div class="category-emoji">👦</div>
-      <h4>Escuela Dominical</h4>
+      <h4>Escuela Bíblica</h4>
       <p>Canciones para los más chicos, fáciles de tocar y aprender.</p>
+    </div>
+    <div class="category">
+      <svg class="category-flag" viewBox="0 0 60 40" aria-label="Paraguay">
+        <defs><clipPath id="fpy"><rect width="60" height="40" rx="7"/></clipPath></defs>
+        <g clip-path="url(#fpy)">
+          <rect width="60" height="40" fill="#FFFFFF"/>
+          <rect width="60" height="13.4" fill="#D52B1E"/>
+          <rect y="26.6" width="60" height="13.4" fill="#0038A8"/>
+          <circle cx="30" cy="20" r="4.6" fill="none" stroke="#B0A171" stroke-width="1.6"/>
+          <circle cx="30" cy="20" r="1.6" fill="#5B8C3E"/>
+        </g>
+      </svg>
+      <h4>Purahéi</h4>
+      <p>Alabanzas en guaraní para las congregaciones de Paraguay y la región.</p>
+    </div>
+    <div class="category">
+      <svg class="category-flag" viewBox="0 0 60 40" aria-label="Brasil">
+        <defs><clipPath id="fbr"><rect width="60" height="40" rx="7"/></clipPath></defs>
+        <g clip-path="url(#fbr)">
+          <rect width="60" height="40" fill="#009C3B"/>
+          <path d="M30 5 L55 20 L30 35 L5 20 Z" fill="#FEDF00"/>
+          <circle cx="30" cy="20" r="8" fill="#002776"/>
+          <path d="M22.6 18.2 Q30 16.4 37.4 21.2" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+        </g>
+      </svg>
+      <h4>Louvores</h4>
+      <p>Louvores em português, com o aplicativo traduzido para o seu idioma.</p>
     </div>
   </div>
 </section>
@@ -617,19 +828,61 @@
   <div class="footer-links">
     <a href="https://apps.apple.com/app/id6769582020">App Store</a>
     <a href="https://play.google.com/store/apps/details?id=com.corapps.aleguitarra">Google Play</a>
+    <a href="https://www.aleguitarra.com" target="_blank" rel="noopener">aleguitarra.com</a>
+    <a href="/privacy.html">Política de privacidad</a>
   </div>
   <div class="footer-meta">© 2026 Ale Guitarra · com.corapps.aleguitarra</div>
 </footer>
 
 <script>
-  // Real song count from data repo (updates the 844)
+  // Contador animado hasta el total real de canciones (index.json del repo de datos)
+  const songsEl = document.getElementById('total-songs');
+  let songsTarget = parseInt(songsEl?.dataset.target || '0', 10);
+  let songsCounted = false;
+
+  function countUp() {
+    if (songsCounted || !songsEl) return;
+    songsCounted = true;
+    const dur = 1400, t0 = performance.now();
+    (function tick(t) {
+      const p = Math.min((t - t0) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      songsEl.textContent = Math.round(songsTarget * eased);
+      if (p < 1) requestAnimationFrame(tick);
+    })(t0);
+  }
+
   fetch('https://raw.githubusercontent.com/tomicor/aleguitarra-data/main/index.json')
     .then(r => r.json())
     .then(d => {
-      const el = document.getElementById('total-songs');
-      if (el && Array.isArray(d)) el.textContent = d.length;
+      if (Array.isArray(d)) {
+        songsTarget = d.length;
+        if (songsCounted && songsEl) songsEl.textContent = d.length;
+      }
     })
     .catch(() => {});
+
+  // Aparición suave al scrollear
+  const revealEls = document.querySelectorAll('.feature, .category, .stat, .showcase-text, .phone-wrap, .cta-section');
+  revealEls.forEach((el, i) => {
+    el.classList.add('reveal');
+    el.style.transitionDelay = `${(i % 4) * 70}ms`;
+  });
+  if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          if (e.target.classList.contains('stat')) countUp();
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    revealEls.forEach(el => io.observe(el));
+  } else {
+    revealEls.forEach(el => el.classList.add('in'));
+    countUp();
+  }
 
   // Smooth scroll fallback for browsers that don't honor scroll-margin
   document.querySelectorAll('a[href^="#"]').forEach(a => {
