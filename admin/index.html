@@ -278,11 +278,21 @@ async function login() {
   loadIndex();
 }
 document.getElementById('pwd-input').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
-if (localStorage.getItem('ag_pwd')) {
+// Sesión guardada: la revalidamos contra el hash ACTUAL antes de dejar pasar.
+// Antes entraba de una sin comprobar nada, así que al rotar la contraseña la
+// sesión vieja seguía abriendo el panel y recién fallaba al guardar, con un
+// "contraseña incorrecta" imposible de entender.
+(async () => {
+  const guardada = localStorage.getItem('ag_pwd');
+  if (!guardada) return;
+  if (await sha256(guardada) !== HASH) {
+    localStorage.removeItem('ag_pwd'); // caducó: que la escriba de nuevo
+    return;
+  }
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   loadIndex();
-}
+})();
 
 // ── CHORD DETECTION (same as editor) ──────────────────────────────────────────
 const AG = {

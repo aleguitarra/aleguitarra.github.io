@@ -203,13 +203,19 @@ document.getElementById('pwd-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') login();
 });
 
-// Check existing session
-(function() {
-  if (localStorage.getItem('ag_pwd')) {
-    document.getElementById('gate').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    initApp();
+// Sesión guardada: la revalidamos contra el hash ACTUAL antes de dejar pasar.
+// Si no, al rotar la contraseña la sesión vieja seguía abriendo el editor y
+// recién fallaba al guardar, con un error que no había forma de entender.
+(async function() {
+  const guardada = localStorage.getItem('ag_pwd');
+  if (!guardada) return;
+  if (await sha256(guardada) !== HASH) {
+    localStorage.removeItem('ag_pwd'); // caducó: que la escriba de nuevo
+    return;
   }
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initApp();
 })();
 
 // ── CHORD DETECTION (port of visual_converter.dart) ───────────────────────────
