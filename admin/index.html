@@ -270,6 +270,17 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
       <div style="color:#9C8775;font-size:12px;margin-top:5px">Si es de YouTube, se abre en la app de YouTube.</div>
     </div>
 
+    <!-- Confirmación con contraseña: mandar un aviso a todos no se puede
+         deshacer, así que no alcanza con tener la sesión abierta. -->
+    <div style="border-top:1px solid rgba(212,132,62,.2);margin-top:16px;padding-top:14px">
+      <label style="display:block;color:#D4A574;font-size:13px;font-weight:700;margin-bottom:5px">
+        Confirmá tu contraseña para enviar
+      </label>
+      <input class="field" id="push-pwd" type="password" placeholder="Contraseña de administrador"
+        onkeydown="if(event.key==='Enter') doPush()"
+        style="padding:10px 13px;border-radius:8px;border:1.5px solid rgba(212,132,62,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;width:100%">
+    </div>
+
     <div class="cooldown-msg" id="push-msg" style="display:none"></div>
 
     <div class="modal-actions">
@@ -914,7 +925,7 @@ let pushSong = null;
 
 function openPush() {
   pushSong = null;
-  ['push-title','push-body','push-song-q','push-list-code','push-url'].forEach(id =>
+  ['push-title','push-body','push-song-q','push-list-code','push-url','push-pwd'].forEach(id =>
     document.getElementById(id).value = '');
   document.getElementById('push-type').value = 'home';
   document.getElementById('push-song-res').innerHTML = '';
@@ -981,6 +992,13 @@ async function doPush() {
     if (!/^https?:\/\/.+/i.test(target)) return pushMsg('El enlace tiene que empezar con https://', false);
   }
 
+  // Confirmación con contraseña: tener la sesión abierta no alcanza para
+  // mandarle un aviso a todos. Se valida acá contra el hash y además viaja al
+  // servidor, que la vuelve a validar (lo de acá es solo para avisar rápido).
+  const pwd = document.getElementById('push-pwd').value;
+  if (!pwd) return pushMsg('Escribí tu contraseña para confirmar', false);
+  if (await sha256(pwd) !== HASH) return pushMsg('Contraseña incorrecta', false);
+
   const destino = type === 'song' ? `Abre "${pushSong.title}"`
                 : type === 'list' ? `Carga la lista ${target}`
                 : type === 'url'  ? 'Abre el enlace'
@@ -993,10 +1011,7 @@ async function doPush() {
     const r = await fetch(PUSH_EDGE, {
       method: 'POST',
       headers: { 'Content-Type':'application/json', 'apikey':ANON, 'Authorization':'Bearer '+ANON },
-      body: JSON.stringify({
-        password: localStorage.getItem('ag_pwd'),
-        title, body, type, target
-      })
+      body: JSON.stringify({ password: pwd, title, body, type, target })
     });
     const j = await r.json();
     if (j.ok) {
