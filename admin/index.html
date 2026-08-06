@@ -124,6 +124,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     <h1>Ale Guitarra · Admin</h1>
     <a href="/" style="color:#9C8775;font-size:13px;text-decoration:none">← Inicio</a>
     <button class="btn btn-green" onclick="openNew()">+ Nueva canción</button>
+    <button class="btn" style="background:#27AE60;color:#fff" onclick="openPush()">📢 Crear notificación</button>
   </div>
 
   <div id="stats">
@@ -223,6 +224,57 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     <div class="modal-actions">
       <button class="btn btn-cancel btn" onclick="closeNew()">Cancelar</button>
       <button class="btn btn-publish btn" onclick="publishNew()" id="publish-btn">✓ Publicar canción</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICACION MODAL -->
+<div class="modal-bg" id="push-modal" style="display:none" onclick="bgClose(event,'push-modal')">
+  <div class="modal-box">
+    <h2 style="color:#27AE60">📢 Crear notificación</h2>
+    <p style="margin-bottom:16px">Le llega a <strong style="color:#fff">todos</strong> los que tengan la app. No se puede deshacer.</p>
+
+    <label style="display:block;color:#D4A574;font-size:13px;font-weight:700;margin-bottom:5px">Título</label>
+    <input class="field" id="push-title" maxlength="60" placeholder="Ej: ¡Nuevas canciones!"
+      style="padding:10px 13px;border-radius:8px;border:1.5px solid rgba(212,132,62,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;width:100%;margin-bottom:12px">
+
+    <label style="display:block;color:#D4A574;font-size:13px;font-weight:700;margin-bottom:5px">Texto</label>
+    <textarea class="field" id="push-body" maxlength="160" rows="3" placeholder="Ej: Agregamos 20 alabanzas nuevas al cancionero."
+      style="padding:10px 13px;border-radius:8px;border:1.5px solid rgba(212,132,62,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;width:100%;margin-bottom:12px;resize:vertical;font-family:inherit"></textarea>
+
+    <label style="display:block;color:#D4A574;font-size:13px;font-weight:700;margin-bottom:5px">Al tocar la notificación</label>
+    <select class="field" id="push-type" onchange="pushTypeChanged()"
+      style="padding:10px 13px;border-radius:8px;border:1.5px solid rgba(212,132,62,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;width:100%;margin-bottom:10px">
+      <option value="home">Abrir la app</option>
+      <option value="song">Abrir una canción</option>
+      <option value="list">Cargar una lista</option>
+      <option value="url">Abrir un enlace o video</option>
+    </select>
+
+    <!-- Buscador de canción: mismo catálogo que ya carga la página -->
+    <div id="push-song-wrap" style="display:none;margin-bottom:10px">
+      <input class="field" id="push-song-q" oninput="pushSongSearch()" placeholder="Escribí el nombre de la canción"
+        style="padding:10px 13px;border-radius:8px;border:1.5px solid rgba(212,132,62,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;width:100%">
+      <div id="push-song-res" style="max-height:150px;overflow-y:auto;margin-top:6px"></div>
+      <div id="push-song-sel" style="color:#27AE60;font-weight:700;font-size:13px;margin-top:6px"></div>
+    </div>
+
+    <div id="push-list-wrap" style="display:none;margin-bottom:10px">
+      <input class="field" id="push-list-code" maxlength="5" placeholder="Código de la lista (ej: A3F9K)"
+        style="padding:10px 13px;border-radius:8px;border:1.5px solid rgba(212,132,62,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;width:100%;text-transform:uppercase;letter-spacing:3px">
+    </div>
+
+    <div id="push-url-wrap" style="display:none;margin-bottom:10px">
+      <input class="field" id="push-url" placeholder="https://youtube.com/watch?v=..."
+        style="padding:10px 13px;border-radius:8px;border:1.5px solid rgba(212,132,62,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;width:100%">
+      <div style="color:#9C8775;font-size:12px;margin-top:5px">Si es de YouTube, se abre en la app de YouTube.</div>
+    </div>
+
+    <div class="cooldown-msg" id="push-msg" style="display:none"></div>
+
+    <div class="modal-actions">
+      <button class="btn btn-cancel btn" onclick="closePush()">Cancelar</button>
+      <button class="btn btn" style="background:#27AE60;color:#fff" onclick="doPush()" id="push-btn">Mandar a todos</button>
     </div>
   </div>
 </div>
@@ -853,11 +905,119 @@ async function doDelete() {
   }
 }
 
+// ── NOTIFICACIONES ─────────────────────────────────────────────────────────────
+// Mismo formulario que el botón "Aviso" de la app. La clave de Firebase vive
+// en la Edge Function send-push, nunca acá: desde el navegador solo se manda
+// la contraseña de admin, que el servidor valida.
+const PUSH_EDGE = 'https://ntrfkgxqeugjshvicgfj.supabase.co/functions/v1/send-push';
+let pushSong = null;
+
+function openPush() {
+  pushSong = null;
+  ['push-title','push-body','push-song-q','push-list-code','push-url'].forEach(id =>
+    document.getElementById(id).value = '');
+  document.getElementById('push-type').value = 'home';
+  document.getElementById('push-song-res').innerHTML = '';
+  document.getElementById('push-song-sel').textContent = '';
+  document.getElementById('push-msg').style.display = 'none';
+  pushTypeChanged();
+  document.getElementById('push-modal').style.display = 'flex';
+}
+function closePush() { document.getElementById('push-modal').style.display = 'none'; }
+
+function pushTypeChanged() {
+  const t = document.getElementById('push-type').value;
+  document.getElementById('push-song-wrap').style.display = t === 'song' ? 'block' : 'none';
+  document.getElementById('push-list-wrap').style.display = t === 'list' ? 'block' : 'none';
+  document.getElementById('push-url-wrap').style.display  = t === 'url'  ? 'block' : 'none';
+}
+
+function pushSongSearch() {
+  const q = document.getElementById('push-song-q').value.trim().toLowerCase();
+  const cont = document.getElementById('push-song-res');
+  if (q.length < 2) { cont.innerHTML = ''; return; }
+  cont.innerHTML = allSongs
+    .filter(s => s.title.toLowerCase().includes(q))
+    .slice(0, 20)
+    .map(s => `<div onclick="pickPushSong('${esc(s.slug)}')"
+        style="padding:7px 10px;cursor:pointer;border-radius:6px;color:#f0e0d0;font-size:13px"
+        onmouseover="this.style.background='#2a1509'" onmouseout="this.style.background=''"
+      >${esc(s.title)}</div>`).join('');
+}
+
+function pickPushSong(slug) {
+  const s = allSongs.find(x => x.slug === slug);
+  if (!s) return;
+  pushSong = s;
+  document.getElementById('push-song-sel').textContent = 'Elegida: ' + s.title;
+  document.getElementById('push-song-res').innerHTML = '';
+  document.getElementById('push-song-q').value = s.title;
+}
+
+function pushMsg(texto, ok) {
+  const el = document.getElementById('push-msg');
+  el.textContent = texto;
+  el.style.display = 'block';
+  el.style.color = ok ? '#27AE60' : '#ff6b6b';
+}
+
+async function doPush() {
+  const title = document.getElementById('push-title').value.trim();
+  const body  = document.getElementById('push-body').value.trim();
+  const type  = document.getElementById('push-type').value;
+
+  if (!title) return pushMsg('Falta el título', false);
+  if (!body)  return pushMsg('Falta el texto', false);
+
+  let target = '';
+  if (type === 'song') {
+    if (!pushSong) return pushMsg('Elegí una canción de la lista', false);
+    target = pushSong.slug;
+  } else if (type === 'list') {
+    target = document.getElementById('push-list-code').value.trim().toUpperCase();
+    if (target.length < 4) return pushMsg('Falta el código de la lista', false);
+  } else if (type === 'url') {
+    target = document.getElementById('push-url').value.trim();
+    if (!/^https?:\/\/.+/i.test(target)) return pushMsg('El enlace tiene que empezar con https://', false);
+  }
+
+  const destino = type === 'song' ? `Abre "${pushSong.title}"`
+                : type === 'list' ? `Carga la lista ${target}`
+                : type === 'url'  ? 'Abre el enlace'
+                : 'Abre la app en el inicio';
+  if (!confirm(`Le va a llegar a TODOS los que tengan la app, y no se puede deshacer.\n\n"${title}"\n${body}\n\n${destino}\n\n¿Mandar?`)) return;
+
+  const btn = document.getElementById('push-btn');
+  btn.disabled = true; btn.textContent = 'Mandando...';
+  try {
+    const r = await fetch(PUSH_EDGE, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'apikey':ANON, 'Authorization':'Bearer '+ANON },
+      body: JSON.stringify({
+        password: localStorage.getItem('ag_pwd'),
+        title, body, type, target
+      })
+    });
+    const j = await r.json();
+    if (j.ok) {
+      pushMsg('Notificación enviada a todos los usuarios', true);
+      setTimeout(closePush, 1800);
+    } else {
+      pushMsg(j.error || ('Error ' + r.status), false);
+    }
+  } catch (e) {
+    pushMsg('No se pudo conectar. Revisá tu internet.', false);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Mandar a todos';
+  }
+}
+
 // ── UTILS ──────────────────────────────────────────────────────────────────────
 function bgClose(e, id) {
   if (e.target === document.getElementById(id)) {
     if (id==='new-modal') closeNew();
     else if (id==='del-modal') closeDel();
+    else if (id==='push-modal') closePush();
   }
 }
 </script>
