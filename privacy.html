@@ -80,10 +80,10 @@
 <body>
 
 <h1>Política de Privacidad</h1>
-<p class="meta">Aplicación: <strong>Ale Guitarra</strong> · Desarrollador: <strong>CorApps</strong> · Última actualización: 3 de julio de 2026</p>
+<p class="meta">Aplicación: <strong>Ale Guitarra</strong> · Desarrollador: <strong>CorApps</strong> · Última actualización: 8 de agosto de 2026</p>
 
 <div class="highlight">
-  <p><strong>Resumen:</strong> Ale Guitarra es una aplicación gratuita y sin publicidad. No solicitamos cuentas ni datos personales. La mayoría de la información se guarda solo en tu dispositivo. Cuando creás o importás listas compartidas, esos datos (sin información personal identificable) se sincronizan con un servicio público de almacenamiento (GitHub) para que funcionen entre dispositivos.</p>
+  <p><strong>Resumen:</strong> Ale Guitarra es una aplicación gratuita y sin publicidad. No solicitamos cuentas ni datos personales. La mayoría de la información se guarda solo en tu dispositivo. Cuando creás o importás listas compartidas, esos datos (sin información personal identificable) se sincronizan con servicios externos para que funcionen entre dispositivos. También podemos enviarte avisos y, ocasionalmente, una breve encuesta anónima que podés no responder. En ningún caso sabemos quién sos.</p>
 </div>
 
 <h2>1. Sobre la aplicación y el desarrollador</h2>
@@ -118,11 +118,36 @@
   <tr><td>Nivel de permisos de la lista</td><td>Actividad de la app</td><td>Controlar quién puede modificarla</td></tr>
 </table>
 
-<h3>3.3 Identificador anónimo del dispositivo</h3>
+<h3>3.3 Notificaciones (avisos y recordatorios)</h3>
+<p>La aplicación puede enviarte avisos cuando se agregan canciones nuevas o hay novedades. Para eso utiliza <strong>Firebase Cloud Messaging</strong>, un servicio de Google.</p>
+<table>
+  <tr><th>Dato</th><th>Tipo</th><th>Para qué</th></tr>
+  <tr><td>Token de notificaciones</td><td>Identificador del dispositivo</td><td>Que Google sepa a qué dispositivo entregar el aviso</td></tr>
+</table>
+<p>Ese token lo genera Google, es propio de la instalación y <strong>no contiene información personal</strong>. No lo usamos para identificarte ni lo cruzamos con ningún otro dato: los avisos se envían a todos los dispositivos por igual, sin segmentar ni personalizar. No sabemos quién recibe cada uno.</p>
+<p>Podés <strong>desactivar los avisos en cualquier momento</strong> desde la campanita del inicio de la app, o desde los ajustes de tu teléfono. Si los desactivás, la aplicación sigue funcionando igual.</p>
+<p>La aplicación también programa <strong>recordatorios locales</strong> (por ejemplo, si hace tiempo que no la abrís). Esos se generan y se guardan enteramente en tu teléfono: <strong>no se transmite ningún dato</strong> para que funcionen.</p>
+
+<h3>3.4 Encuestas dentro de la aplicación</h3>
+<p>Ocasionalmente puede aparecer una breve encuesta al abrir la aplicación (por ejemplo, para preguntarte qué funciones te gustaría que agreguemos). <strong>Responderla es completamente voluntario</strong>: podés cerrarla sin contestar y no vuelve a aparecer.</p>
+<p>Si decidís responder, se transmiten a nuestro servidor (<strong>Supabase</strong>) únicamente estos datos:</p>
+<table>
+  <tr><th>Dato</th><th>Tipo</th><th>Para qué</th></tr>
+  <tr><td>La opción que elegiste</td><td>Actividad de la app</td><td>Contar los resultados</td></tr>
+  <tr><td>El comentario que escribiste, si escribiste uno</td><td>Contenido generado por el usuario</td><td>Leer tus sugerencias</td></tr>
+  <tr><td>Identificador anónimo del dispositivo</td><td>Identificador del dispositivo</td><td>Que no aparezca dos veces la misma encuesta</td></tr>
+</table>
+<p><strong>Las encuestas son anónimas.</strong> El identificador del dispositivo no está asociado a tu nombre, correo, teléfono ni a ningún dato personal, así que no podemos saber quién respondió cada cosa. Las respuestas no se publican ni son visibles para otros usuarios: solo las ve el desarrollador, en conjunto.</p>
+<div class="highlight">
+  <p><strong>Importante:</strong> el campo de comentario es de texto libre. <strong>No escribas ahí datos personales</strong> (tu nombre, teléfono, dirección o correo). Si lo hicieras, esa información quedaría guardada junto a tu respuesta. Si querés que borremos un comentario, escribinos y lo eliminamos.</p>
+</div>
+
+<h3>3.5 Identificador anónimo del dispositivo</h3>
 <p>La aplicación genera un identificador único anónimo (ID local) la primera vez que la abrís. Este identificador <strong>no contiene información personal</strong> y no permite identificarte. Solo se utiliza para:</p>
 <ul>
   <li>Reconocer al creador de una lista compartida</li>
   <li>Contar cuántos dispositivos tienen acceso a una lista compartida</li>
+  <li>Evitar que la misma encuesta aparezca dos veces</li>
 </ul>
 <p>El identificador se borra al desinstalar la aplicación.</p>
 
@@ -130,6 +155,8 @@
 <p>Sí, parcialmente. La aplicación utiliza los siguientes servicios externos:</p>
 <ul>
   <li><strong>GitHub</strong> (alojamiento del catálogo y de las listas compartidas). Política: <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" target="_blank">Privacy de GitHub</a>.</li>
+  <li><strong>Firebase Cloud Messaging</strong> (Google): entrega los avisos al dispositivo. Solo recibe el token de notificaciones, sin datos personales. Política: <a href="https://firebase.google.com/support/privacy" target="_blank">Privacy de Firebase</a>.</li>
+  <li><strong>Supabase</strong>: aloja las listas compartidas en tiempo real y las respuestas de las encuestas. Política: <a href="https://supabase.com/privacy" target="_blank">Privacy de Supabase</a>.</li>
   <li><strong>YouTube</strong>: al tocar el botón de video, abre la app o el sitio de YouTube. Política: <a href="https://policies.google.com/privacy" target="_blank">Privacy de Google</a>.</li>
   <li><strong>WhatsApp</strong>: al compartir una lista, abre WhatsApp con un mensaje pre-armado. Política: <a href="https://www.whatsapp.com/legal/privacy-policy" target="_blank">Privacy de WhatsApp</a>.</li>
   <li><strong>PayPal</strong>: al donar, abre el sitio de PayPal en el navegador. Política: <a href="https://www.paypal.com/privacy" target="_blank">Privacy de PayPal</a>.</li>
@@ -172,6 +199,8 @@
   <li><strong>Acceso a Internet</strong>: necesario para descargar el catálogo de canciones, sincronizar listas compartidas y abrir enlaces externos (YouTube, PayPal, WhatsApp).</li>
   <li><strong>Red local (Wi-Fi)</strong>: usado únicamente por la función de "Proyectar en TV" (Chromecast) para encontrar televisores o dispositivos Chromecast conectados a la misma red Wi-Fi que tu teléfono. No se envía información personal por esta vía; solo se transmite el contenido de la canción que elegís proyectar. Podés usar la app sin conceder este permiso; simplemente no vas a poder proyectar a un TV.</li>
   <li><strong>Mantener la pantalla encendida</strong>: mientras estás viendo una canción, para que no se apague mientras tocás. No implica recolección de datos.</li>
+  <li><strong>Notificaciones</strong>: para avisarte cuando hay canciones nuevas o novedades, y para los recordatorios. Se te pide al abrir la app por primera vez y podés negarlo: la aplicación funciona igual sin este permiso. También podés desactivarlo después desde la campanita del inicio.</li>
+  <li><strong>Iniciar al encender el teléfono</strong>: únicamente para volver a programar los recordatorios locales después de reiniciar. La aplicación no se abre ni funciona en segundo plano por esto.</li>
 </ul>
 <p>La aplicación <strong>no solicita</strong> acceso a ubicación, cámara, micrófono, contactos, fotos, almacenamiento externo, calendario, Bluetooth, salud, identificadores publicitarios (IDFA) ni a ningún otro dato sensible.</p>
 
