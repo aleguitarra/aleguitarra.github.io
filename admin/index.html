@@ -125,6 +125,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     <a href="/" style="color:#9C8775;font-size:13px;text-decoration:none">← Inicio</a>
     <button class="btn btn-green" onclick="openNew()">+ Nueva canción</button>
     <button class="btn" style="background:#27AE60;color:#fff" onclick="openPush()">📢 Crear notificación</button>
+    <button class="btn" style="background:#8E44AD;color:#fff" onclick="openEnc()">📊 Encuestas</button>
   </div>
 
   <div id="stats">
@@ -225,6 +226,51 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
       <button class="btn btn-cancel btn" onclick="closeNew()">Cancelar</button>
       <button class="btn btn-publish btn" onclick="publishNew()" id="publish-btn">✓ Publicar canción</button>
     </div>
+  </div>
+</div>
+
+<!-- ENCUESTAS MODAL -->
+<div class="modal-bg" id="enc-modal" style="display:none" onclick="bgClose(event,'enc-modal')">
+  <div class="modal-box" style="max-width:640px">
+    <h2 style="color:#8E44AD">📊 Encuestas</h2>
+    <p style="margin-bottom:16px">Le aparecen a la gente al abrir la app, una sola vez y sin bloquear nada.</p>
+
+    <label style="display:block;color:#D4A574;font-size:13px;font-weight:700;margin-bottom:5px">Pregunta</label>
+    <input class="field" id="enc-preg" maxlength="120" placeholder="Ej: ¿Qué te gustaría que agreguemos?"
+      style="padding:10px 13px;border-radius:8px;border:1.5px solid rgba(212,132,62,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;width:100%;margin-bottom:12px">
+
+    <label style="display:block;color:#D4A574;font-size:13px;font-weight:700;margin-bottom:5px">Opciones (una por línea, dejalo vacío si solo querés que escriban)</label>
+    <textarea class="field" id="enc-ops" rows="4" placeholder="Diagramas de acordes&#10;Más canciones en guaraní&#10;Otra cosa"
+      style="padding:10px 13px;border-radius:8px;border:1.5px solid rgba(212,132,62,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;width:100%;margin-bottom:12px;resize:vertical;font-family:inherit"></textarea>
+
+    <label style="display:block;color:#D4A574;font-size:13px;font-weight:700;margin-bottom:5px">¿Cuánto tiempo circula?</label>
+    <select class="field" id="enc-horas"
+      style="padding:10px 13px;border-radius:8px;border:1.5px solid rgba(212,132,62,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;width:100%;margin-bottom:12px">
+      <option value="12">12 horas</option>
+      <option value="24" selected>1 día</option>
+      <option value="72">3 días</option>
+      <option value="168">1 semana</option>
+      <option value="">Sin límite</option>
+    </select>
+
+    <label style="display:flex;align-items:center;gap:8px;color:#f0e0d0;font-size:14px;margin-bottom:14px;cursor:pointer">
+      <input type="checkbox" id="enc-texto" checked> Dejar escribir un comentario
+    </label>
+
+    <div style="border-top:1px solid rgba(212,132,62,.2);padding-top:14px;margin-bottom:12px">
+      <label style="display:block;color:#D4A574;font-size:13px;font-weight:700;margin-bottom:5px">Confirmá tu contraseña</label>
+      <input class="field" id="enc-pwd" type="password" placeholder="Contraseña de administrador"
+        style="padding:10px 13px;border-radius:8px;border:1.5px solid rgba(212,132,62,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;width:100%">
+    </div>
+
+    <div class="cooldown-msg" id="enc-msg" style="display:none"></div>
+
+    <div class="modal-actions">
+      <button class="btn btn-cancel btn" onclick="closeEnc()">Cerrar</button>
+      <button class="btn btn" style="background:#8E44AD;color:#fff" onclick="crearEnc()" id="enc-btn">Publicar encuesta</button>
+    </div>
+
+    <div id="enc-lista" style="margin-top:20px;border-top:1px solid rgba(212,132,62,.2);padding-top:14px"></div>
   </div>
 </div>
 
@@ -1027,12 +1073,158 @@ async function doPush() {
   }
 }
 
+// ── ENCUESTAS ──────────────────────────────────────────────────────────────────
+// Crear y pausar encuestas NO se puede hacer escribiendo directo en la base: la
+// clave pública solo permite LEER las activas. Todo pasa por la Edge Function,
+// que valida la contraseña del lado del servidor.
+const ENC_EDGE = 'https://ntrfkgxqeugjshvicgfj.supabase.co/functions/v1/encuestas-admin';
+
+async function encApi(body) {
+  const r = await fetch(ENC_EDGE, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'apikey':ANON, 'Authorization':'Bearer '+ANON },
+    body: JSON.stringify({ ...body, password: document.getElementById('enc-pwd').value })
+  });
+  return await r.json();
+}
+
+function openEnc() {
+  ['enc-preg','enc-ops','enc-pwd'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('enc-texto').checked = true;
+  document.getElementById('enc-horas').value = '24';
+  document.getElementById('enc-msg').style.display = 'none';
+  document.getElementById('enc-lista').innerHTML =
+    '<p style="color:#9C8775;font-size:13px">Escribí tu contraseña y tocá "Ver encuestas" para administrarlas.' +
+    ' <a href="#" onclick="listarEnc();return false" style="color:#D4A574">Ver encuestas</a></p>';
+  document.getElementById('enc-modal').style.display = 'flex';
+}
+function closeEnc() { document.getElementById('enc-modal').style.display = 'none'; }
+
+function encMsg(t, ok) {
+  const el = document.getElementById('enc-msg');
+  el.textContent = t; el.style.display = 'block';
+  el.style.color = ok ? '#27AE60' : '#ff6b6b';
+}
+
+async function crearEnc() {
+  const pregunta = document.getElementById('enc-preg').value.trim();
+  if (!pregunta) return encMsg('Escribí la pregunta', false);
+  if (!document.getElementById('enc-pwd').value) return encMsg('Escribí tu contraseña', false);
+
+  const opciones = document.getElementById('enc-ops').value
+    .split('\n').map(s => s.trim()).filter(Boolean);
+  const permiteTexto = document.getElementById('enc-texto').checked;
+  if (!opciones.length && !permiteTexto) return encMsg('Poné opciones o dejá que escriban', false);
+  if (opciones.length === 1) return encMsg('Con una sola opción no es una encuesta', false);
+
+  const h = document.getElementById('enc-horas').value;
+  const btn = document.getElementById('enc-btn');
+  btn.disabled = true; btn.textContent = 'Publicando...';
+  try {
+    const j = await encApi({
+      action: 'crear', pregunta, opciones,
+      permite_texto: permiteTexto, ...(h ? { horas: Number(h) } : {})
+    });
+    if (j.ok) {
+      encMsg('Encuesta publicada. Ya empieza a aparecerles.', true);
+      document.getElementById('enc-preg').value = '';
+      document.getElementById('enc-ops').value = '';
+      listarEnc();
+    } else encMsg(j.error || 'No se pudo crear', false);
+  } catch (e) {
+    encMsg('No se pudo conectar', false);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Publicar encuesta';
+  }
+}
+
+async function listarEnc() {
+  if (!document.getElementById('enc-pwd').value) return encMsg('Escribí tu contraseña', false);
+  const cont = document.getElementById('enc-lista');
+  cont.innerHTML = '<p style="color:#9C8775;font-size:13px">Cargando...</p>';
+  try {
+    const j = await encApi({ action: 'listar' });
+    if (!j.ok) { cont.innerHTML = ''; return encMsg(j.error || 'No se pudo cargar', false); }
+    if (!j.encuestas.length) {
+      cont.innerHTML = '<p style="color:#9C8775;font-size:13px">Todavía no creaste ninguna.</p>';
+      return;
+    }
+    cont.innerHTML = '<h3 style="color:#D4A574;font-size:14px;margin-bottom:10px">Tus encuestas</h3>' +
+      j.encuestas.map(e => {
+        const activa = e.activa === true;
+        const venc = e.expira ? restanteEnc(e.expira) : '';
+        return `<div style="background:#1a0a02;border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid ${activa?'rgba(39,174,96,.4)':'rgba(212,132,62,.15)'}">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${activa?'rgba(39,174,96,.18)':'rgba(156,135,117,.18)'};color:${activa?'#27AE60':'#9C8775'}">${activa?'Activa':'Pausada'}</span>
+            <span style="color:#9C8775;font-size:12px;margin-left:auto">${e.respuestas} ${e.respuestas===1?'respuesta':'respuestas'}</span>
+          </div>
+          <div style="color:#f0e0d0;font-size:14px;font-weight:600">${esc(e.pregunta)}</div>
+          ${venc ? `<div style="color:#9C8775;font-size:12px;margin-top:3px">${venc}</div>` : ''}
+          <div style="margin-top:8px;display:flex;gap:14px">
+            <a href="#" onclick="verResultadosEnc(${e.id});return false" style="color:#D4A574;font-size:13px">Ver respuestas</a>
+            <a href="#" onclick="pausarEnc(${e.id},${!activa});return false" style="color:${activa?'#e67e22':'#27AE60'};font-size:13px">${activa?'Pausar':'Reactivar'}</a>
+          </div>
+          <div id="enc-res-${e.id}"></div>
+        </div>`;
+      }).join('');
+  } catch (e) {
+    cont.innerHTML = '';
+    encMsg('No se pudo conectar', false);
+  }
+}
+
+function restanteEnc(expira) {
+  const d = new Date(expira), falta = d - new Date();
+  if (falta < 0) return 'Ya terminó';
+  const h = Math.floor(falta / 3600000);
+  if (h < 1) return `Termina en ${Math.floor(falta/60000)} min`;
+  if (h < 24) return `Termina en ${h} h`;
+  const dias = Math.floor(h/24);
+  return `Termina en ${dias} ${dias===1?'día':'días'}`;
+}
+
+async function pausarEnc(id, activa) {
+  const j = await encApi({ action:'activar', id, activa });
+  if (j.ok) { encMsg(activa ? 'Encuesta reactivada' : 'Encuesta pausada', true); listarEnc(); }
+  else encMsg(j.error || 'No se pudo cambiar', false);
+}
+
+async function verResultadosEnc(id) {
+  const cont = document.getElementById('enc-res-' + id);
+  if (cont.innerHTML) { cont.innerHTML = ''; return; } // segundo clic: cerrar
+  cont.innerHTML = '<p style="color:#9C8775;font-size:12px;margin-top:8px">Cargando...</p>';
+  const j = await encApi({ action:'resultados', id });
+  if (!j.ok) { cont.innerHTML = ''; return encMsg(j.error || 'No se pudo cargar', false); }
+
+  const ops = Object.entries(j.conteo).sort((a,b) => b[1]-a[1]);
+  let html = '<div style="margin-top:10px;border-top:1px solid rgba(212,132,62,.15);padding-top:10px">';
+  if (!ops.length && !j.comentarios.length) {
+    html += '<p style="color:#9C8775;font-size:12.5px">Todavía no respondió nadie.</p>';
+  }
+  for (const [op, n] of ops) {
+    const pct = j.total ? Math.round(n*100/j.total) : 0;
+    html += `<div style="margin-bottom:8px">
+      <div style="display:flex;font-size:13px;color:#f0e0d0"><span style="flex:1">${esc(op)}</span><span style="color:#9C8775">${n} (${pct}%)</span></div>
+      <div style="height:7px;background:#2a1509;border-radius:4px;margin-top:3px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:#8E44AD"></div>
+      </div></div>`;
+  }
+  if (j.comentarios.length) {
+    html += `<div style="color:#D4A574;font-size:12.5px;font-weight:700;margin:10px 0 6px">Comentarios (${j.comentarios.length})</div>`;
+    html += j.comentarios.map(c =>
+      `<div style="background:#2a1509;border-radius:8px;padding:9px;margin-bottom:6px;color:#f0e0d0;font-size:13px;line-height:1.4">${esc(c)}</div>`
+    ).join('');
+  }
+  cont.innerHTML = html + '</div>';
+}
+
 // ── UTILS ──────────────────────────────────────────────────────────────────────
 function bgClose(e, id) {
   if (e.target === document.getElementById(id)) {
     if (id==='new-modal') closeNew();
     else if (id==='del-modal') closeDel();
     else if (id==='push-modal') closePush();
+    else if (id==='enc-modal') closeEnc();
   }
 }
 </script>
