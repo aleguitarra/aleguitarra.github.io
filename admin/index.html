@@ -233,23 +233,22 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 </div>
 
 <!-- ADICIONALES: menú intermedio -->
-<div class="modal-bg" id="extras-modal" style="display:none" onclick="bgClose(event,'extras-modal')">
+<!-- Sin cerrar al tocar el fondo: un toque de más borraba todo lo escrito. -->
+<div class="modal-bg" id="extras-modal" style="display:none">
   <div class="modal-box" style="max-width:540px">
     <h2 style="color:#5B9BD5">⚙️ Opciones adicionales</h2>
-    <p style="margin-bottom:18px">Las dos cosas de acá abajo <strong style="color:#fff">le llegan a toda la gente que tiene la app</strong>, no solo a vos. Leé la advertencia de cada una antes de entrar.</p>
+    <p style="margin-bottom:18px">Las dos cosas de acá abajo le llegan a <strong style="color:#fff">toda la gente que tiene la app</strong>, no solo a vos.</p>
 
     <button onclick="closeExtras();openPush()"
       style="display:block;width:100%;text-align:left;background:#1a0a02;border:1.5px solid rgba(39,174,96,.45);border-radius:10px;padding:14px 16px;margin-bottom:12px;cursor:pointer;font-family:inherit">
       <div style="color:#27AE60;font-weight:800;font-size:16px;margin-bottom:5px">📢 Crear notificación</div>
-      <div style="color:#f0e0d0;font-size:13px;line-height:1.5">Les suena el celular a todos en el momento.
-        <strong style="color:#ff8a8a">No se puede borrar ni corregir después.</strong></div>
+      <div style="color:#f0e0d0;font-size:13px;line-height:1.5">Les suena el celular en el momento. No se puede editar ni borrar después.</div>
     </button>
 
     <button onclick="closeExtras();openEnc()"
       style="display:block;width:100%;text-align:left;background:#1a0a02;border:1.5px solid rgba(142,68,173,.5);border-radius:10px;padding:14px 16px;margin-bottom:12px;cursor:pointer;font-family:inherit">
       <div style="color:#B06FD4;font-weight:800;font-size:16px;margin-bottom:5px">📊 Encuestas</div>
-      <div style="color:#f0e0d0;font-size:13px;line-height:1.5">Les aparece al abrir la app, una sola vez y sin bloquear nada.
-        Podés pausarla cuando quieras, pero <strong style="color:#ff8a8a">las respuestas que ya te mandaron no se borran.</strong></div>
+      <div style="color:#f0e0d0;font-size:13px;line-height:1.5">Les aparece al abrir la app, una sola vez. Es anónima y la podés pausar o borrar cuando quieras.</div>
     </button>
 
     <div class="modal-actions">
@@ -259,27 +258,37 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 </div>
 
 <!-- ENCUESTAS MODAL -->
-<div class="modal-bg" id="enc-modal" style="display:none" onclick="bgClose(event,'enc-modal')">
+<div class="modal-bg" id="enc-modal" style="display:none">
   <div class="modal-box" style="max-width:640px">
     <h2 style="color:#8E44AD">📊 Encuestas</h2>
 
-    <div style="background:rgba(204,0,0,.12);border:1.5px solid rgba(255,107,107,.45);border-radius:9px;padding:13px 15px;margin-bottom:18px">
-      <div style="color:#ff8a8a;font-weight:800;font-size:14px;margin-bottom:6px">⚠️ Leé esto antes de publicar</div>
-      <div style="color:#f0e0d0;font-size:13px;line-height:1.6">
-        Le aparece a <strong style="color:#fff">toda la gente que tiene la app</strong> al abrirla, una sola vez y sin bloquearles nada.<br>
-        La pregunta y las opciones <strong style="color:#fff">no se pueden editar después</strong>. Si te equivocás, hay que pausarla y crear otra.<br>
-        Podés pausarla cuando quieras, pero <strong style="color:#fff">las respuestas que ya te mandaron no se borran</strong>.<br>
-        Es anónima: no guarda quién contestó qué.
-      </div>
+    <div style="background:rgba(212,132,62,.1);border-left:3px solid #D4A574;border-radius:6px;padding:10px 13px;margin-bottom:18px;color:#f0e0d0;font-size:13px;line-height:1.55">
+      Les aparece al abrir la app, una sola vez y sin bloquearles nada. Es anónima. La pregunta no se puede editar después, pero podés pausarla o borrarla cuando quieras.
     </div>
 
     <label style="display:block;color:#D4A574;font-size:13px;font-weight:700;margin-bottom:5px">Pregunta</label>
-    <input class="field" id="enc-preg" maxlength="120" placeholder="Ej: ¿Qué te gustaría que agreguemos?"
+    <input class="field" id="enc-preg" maxlength="120" placeholder="Ej: ¿Qué te gustaría que agreguemos?" oninput="encPreview()"
       style="padding:10px 13px;border-radius:8px;border:1.5px solid rgba(212,132,62,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;width:100%;margin-bottom:12px">
 
     <label style="display:block;color:#D4A574;font-size:13px;font-weight:700;margin-bottom:5px">Opciones (una por línea, dejalo vacío si solo querés que escriban)</label>
-    <textarea class="field" id="enc-ops" rows="4" placeholder="Diagramas de acordes&#10;Más canciones en guaraní&#10;Otra cosa"
+    <textarea class="field" id="enc-ops" rows="4" placeholder="Diagramas de acordes&#10;Más canciones en guaraní&#10;Otra cosa" oninput="encPreview()"
       style="padding:10px 13px;border-radius:8px;border:1.5px solid rgba(212,132,62,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;width:100%;margin-bottom:12px;resize:vertical;font-family:inherit"></textarea>
+
+    <!-- Vista previa en vivo de la hoja que les sube desde abajo en la app. -->
+    <div style="margin-bottom:16px">
+      <div style="color:#9C8775;font-size:12px;font-weight:700;margin-bottom:7px">ASÍ LO VAN A VER EN LA APP</div>
+      <div style="background:#FDF8F0;border-radius:16px 16px 8px 8px;padding:18px 18px 14px;font-family:Georgia,serif">
+        <div style="width:38px;height:4px;background:#d8cec0;border-radius:2px;margin:0 auto 14px"></div>
+        <div style="color:#A81C1C;font-weight:700;font-size:13.5px;margin-bottom:9px">💬 Tu opinión</div>
+        <div id="enc-prev-preg" style="color:#2b1d15;font-weight:700;font-size:17px;line-height:1.35;margin-bottom:14px">Tu pregunta va acá</div>
+        <div id="enc-prev-ops"></div>
+        <div style="color:#7d6a5a;font-size:12.5px;margin:12px 0 14px">🔒 Es anónima. No sabemos quién responde.</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="color:#5a4a3d;font-size:14px">Ahora no</span>
+          <span style="background:#e6ddd2;color:#7d6a5a;padding:9px 30px;border-radius:9px;font-size:14px">Enviar</span>
+        </div>
+      </div>
+    </div>
 
     <label style="display:block;color:#D4A574;font-size:13px;font-weight:700;margin-bottom:5px">¿Cuánto tiempo circula?</label>
     <select class="field" id="enc-horas"
@@ -313,26 +322,36 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 </div>
 
 <!-- NOTIFICACION MODAL -->
-<div class="modal-bg" id="push-modal" style="display:none" onclick="bgClose(event,'push-modal')">
+<div class="modal-bg" id="push-modal" style="display:none">
   <div class="modal-box">
     <h2 style="color:#27AE60">📢 Crear notificación</h2>
 
-    <div style="background:rgba(204,0,0,.12);border:1.5px solid rgba(255,107,107,.45);border-radius:9px;padding:13px 15px;margin-bottom:18px">
-      <div style="color:#ff8a8a;font-weight:800;font-size:14px;margin-bottom:6px">⚠️ Leé esto antes de enviar</div>
-      <div style="color:#f0e0d0;font-size:13px;line-height:1.6">
-        Le va a <strong style="color:#fff">sonar el celular a todas las personas que tienen la app</strong>, en el momento, estén donde estén.<br>
-        Una vez enviada <strong style="color:#fff">no se puede borrar, corregir ni cancelar</strong>. Si hay un error en el texto, queda así para siempre.<br>
-        Revisá la ortografía y a dónde lleva antes de confirmar.
-      </div>
+    <div style="background:rgba(212,132,62,.1);border-left:3px solid #D4A574;border-radius:6px;padding:10px 13px;margin-bottom:18px;color:#f0e0d0;font-size:13px;line-height:1.55">
+      Le llega a todos los que tienen la app. Una vez enviada no se puede editar ni borrar, así que revisá el texto antes.
     </div>
 
     <label style="display:block;color:#D4A574;font-size:13px;font-weight:700;margin-bottom:5px">Título</label>
-    <input class="field" id="push-title" maxlength="60" placeholder="Ej: ¡Nuevas canciones!"
+    <input class="field" id="push-title" maxlength="60" placeholder="Ej: ¡Nuevas canciones!" oninput="pushPreview()"
       style="padding:10px 13px;border-radius:8px;border:1.5px solid rgba(212,132,62,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;width:100%;margin-bottom:12px">
 
     <label style="display:block;color:#D4A574;font-size:13px;font-weight:700;margin-bottom:5px">Texto</label>
-    <textarea class="field" id="push-body" maxlength="160" rows="3" placeholder="Ej: Agregamos 20 alabanzas nuevas al cancionero."
+    <textarea class="field" id="push-body" maxlength="160" rows="3" placeholder="Ej: Agregamos 20 alabanzas nuevas al cancionero." oninput="pushPreview()"
       style="padding:10px 13px;border-radius:8px;border:1.5px solid rgba(212,132,62,.25);background:#1a0a02;color:#f0e0d0;font-size:14px;outline:none;width:100%;margin-bottom:12px;resize:vertical;font-family:inherit"></textarea>
+
+    <!-- Vista previa en vivo: se actualiza mientras escribe, así ve el texto
+         cortado o con errores ANTES de mandarlo, que después no hay vuelta. -->
+    <div style="margin-bottom:16px">
+      <div style="color:#9C8775;font-size:12px;font-weight:700;margin-bottom:7px">ASÍ LO VAN A VER EN EL CELULAR</div>
+      <div style="background:linear-gradient(120deg,#5a4550,#463a55);border-radius:18px;padding:13px 15px;display:flex;align-items:center;gap:12px;border:1px solid rgba(255,255,255,.16)">
+        <div style="width:40px;height:40px;border-radius:10px;background:#A81C1C;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:21px">🎸</div>
+        <div style="flex:1;min-width:0">
+          <div id="push-prev-title" style="color:#fff;font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Ale Guitarra</div>
+          <div id="push-prev-body" style="color:#e4dae2;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Tu mensaje va acá</div>
+        </div>
+        <div style="color:#c9bcc7;font-size:13px;flex-shrink:0">Ahora</div>
+      </div>
+      <div style="color:#9C8775;font-size:11.5px;margin-top:6px">Si el texto es largo se corta con "…" como acá. Cuando desplieguen el aviso se ve entero.</div>
+    </div>
 
     <label style="display:block;color:#D4A574;font-size:13px;font-weight:700;margin-bottom:5px">Al tocar la notificación</label>
     <select class="field" id="push-type" onchange="pushTypeChanged()"
@@ -383,7 +402,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 </div>
 
 <!-- DELETE MODAL -->
-<div class="modal-bg" id="del-modal" style="display:none" onclick="bgClose(event,'del-modal')">
+<div class="modal-bg" id="del-modal" style="display:none">
   <div class="modal-box del-modal-box">
     <h2 style="color:#ff6b6b">🗑 Eliminar canción</h2>
     <p id="del-name" style="color:#f0e0d0;font-weight:700;font-size:16px;margin-bottom:8px"></p>
@@ -1028,9 +1047,19 @@ function openPush() {
   document.getElementById('push-song-sel').textContent = '';
   document.getElementById('push-msg').style.display = 'none';
   pushTypeChanged();
+  pushPreview();
   document.getElementById('push-modal').style.display = 'flex';
 }
 function closePush() { document.getElementById('push-modal').style.display = 'none'; }
+
+/// Vista previa en vivo del aviso. textContent y no innerHTML: lo que se
+/// escriba acá no tiene que poder inyectar HTML en la propia página.
+function pushPreview() {
+  const t = document.getElementById('push-title').value.trim();
+  const b = document.getElementById('push-body').value.trim();
+  document.getElementById('push-prev-title').textContent = t || 'Ale Guitarra';
+  document.getElementById('push-prev-body').textContent  = b || 'Tu mensaje va acá';
+}
 
 function pushTypeChanged() {
   const t = document.getElementById('push-type').value;
@@ -1146,9 +1175,40 @@ function openEnc() {
   document.getElementById('enc-lista').innerHTML =
     '<p style="color:#9C8775;font-size:13px">Escribí tu contraseña y tocá "Ver encuestas" para administrarlas.' +
     ' <a href="#" onclick="listarEnc();return false" style="color:#D4A574">Ver encuestas</a></p>';
+  encPreview();
   document.getElementById('enc-modal').style.display = 'flex';
 }
 function closeEnc() { document.getElementById('enc-modal').style.display = 'none'; }
+
+/// Vista previa en vivo de la hoja de encuesta. Todo con textContent para que
+/// lo escrito no pueda inyectar HTML en la página.
+function encPreview() {
+  const p = document.getElementById('enc-preg').value.trim();
+  document.getElementById('enc-prev-preg').textContent = p || 'Tu pregunta va acá';
+
+  const ops = document.getElementById('enc-ops').value
+    .split('\n').map(s => s.trim()).filter(Boolean);
+  const cont = document.getElementById('enc-prev-ops');
+  cont.innerHTML = '';
+
+  if (!ops.length) {
+    const box = document.createElement('div');
+    box.style.cssText = 'background:#f2e9dd;border-radius:10px;padding:14px;color:#8b7a6a;font-size:14px;min-height:56px';
+    box.textContent = 'Escribí tu respuesta';
+    cont.appendChild(box);
+    return;
+  }
+  ops.forEach(o => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid #e0d5c6;border-radius:9px;margin-bottom:7px;color:#2b1d15;font-size:14.5px';
+    const dot = document.createElement('span');
+    dot.style.cssText = 'width:16px;height:16px;border-radius:50%;border:2px solid #c0b0a0;flex-shrink:0';
+    const txt = document.createElement('span');
+    txt.textContent = o;
+    row.appendChild(dot); row.appendChild(txt);
+    cont.appendChild(row);
+  });
+}
 
 function encMsg(t, ok) {
   const el = document.getElementById('enc-msg');
@@ -1201,6 +1261,17 @@ async function crearEnc() {
   }
 }
 
+/// Borra una encuesta y sus respuestas. Pausar la saca de circulación pero la
+/// deja en la lista; esto la elimina del todo y no se puede deshacer.
+async function borrarEnc(id) {
+  if (!confirm('Se borra la encuesta y TODAS las respuestas que te mandaron.\n\nEsto no se puede deshacer. ¿Borrar?')) return;
+  try {
+    const j = await encApi({ action: 'borrar', id });
+    if (j.ok) { encMsg('Encuesta borrada', true); listarEnc(); }
+    else encMsg(j.error || 'No se pudo borrar', false);
+  } catch (e) { encMsg('No se pudo conectar', false); }
+}
+
 async function listarEnc() {
   if (!document.getElementById('enc-pwd').value) return encMsg('Escribí tu contraseña', false);
   const cont = document.getElementById('enc-lista');
@@ -1226,6 +1297,7 @@ async function listarEnc() {
           <div style="margin-top:8px;display:flex;gap:14px">
             <a href="#" onclick="verResultadosEnc(${e.id});return false" style="color:#D4A574;font-size:13px">Ver respuestas</a>
             <a href="#" onclick="pausarEnc(${e.id},${!activa});return false" style="color:${activa?'#e67e22':'#27AE60'};font-size:13px">${activa?'Pausar':'Reactivar'}</a>
+            <a href="#" onclick="borrarEnc(${e.id});return false" style="color:#ff6b6b;font-size:13px;margin-left:auto">Borrar</a>
           </div>
           <div id="enc-res-${e.id}"></div>
         </div>`;
@@ -1282,15 +1354,8 @@ async function verResultadosEnc(id) {
 }
 
 // ── UTILS ──────────────────────────────────────────────────────────────────────
-function bgClose(e, id) {
-  if (e.target === document.getElementById(id)) {
-    if (id==='new-modal') closeNew();
-    else if (id==='del-modal') closeDel();
-    else if (id==='push-modal') closePush();
-    else if (id==='enc-modal') closeEnc();
-    else if (id==='extras-modal') closeExtras();
-  }
-}
+// bgClose (cerrar tocando el fondo) se sacó a propósito: un toque de más
+// borraba todo lo escrito. Ahora los pop ups se cierran solo con su botón.
 </script>
 </body>
 </html>
