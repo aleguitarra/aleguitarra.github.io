@@ -169,7 +169,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 const EDGE   = 'https://ntrfkgxqeugjshvicgfj.supabase.co/functions/v1/github-write';
 const ANON   = 'sb_publishable_6_QGimLMb1AXk2nmu7_TKQ_tfWxvsVB';
 const RAW    = 'https://raw.githubusercontent.com/tomicor/aleguitarra-data/main';
-const HASH   = 'c72f9c4a6fa7c8b497d47ff4610e91313ae055f2d8dbfd07c0643bae05ff19dd';
+// Acá había un SHA-256 de la contraseña. Se sacó: esta página es pública, así
+// que ese hash quedaba a la vista de cualquiera, que podía probarle diccionarios
+// OFFLINE a millones de intentos por segundo. Ahora se valida contra el
+// servidor, el único que conoce la contraseña.
+const ADMIN_EDGE = 'https://ntrfkgxqeugjshvicgfj.supabase.co/functions/v1/encuestas-admin';
 const DEL_KEY = 'ag_last_delete';
 const DEL_COOLDOWN = 5 * 60 * 1000; // 5 min
 
@@ -180,19 +184,30 @@ let originalHtml = '';
 let originalYtIds = [];
 
 // ── PASSWORD ───────────────────────────────────────────────────────────────────
-async function sha256(text) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+/// Le pregunta al servidor si la contraseña es correcta.
+/// true / false, o null si no se pudo conectar (que no es lo mismo que
+/// equivocarse y no tiene que echar a nadie de su sesión).
+async function validarPassword(pwd) {
+  try {
+    const r = await fetch(ADMIN_EDGE, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'apikey':ANON, 'Authorization':'Bearer '+ANON },
+      body: JSON.stringify({ password: pwd, action: 'listar' })
+    });
+    const j = await r.json();
+    return j.ok === true;
+  } catch (e) { return null; }
 }
 
 async function login() {
   const pwd = document.getElementById('pwd-input').value;
   if (!pwd) return;
-  const h = await sha256(pwd);
-  if (h !== HASH) {
-    document.getElementById('gate-err').textContent = 'Contraseña incorrecta.';
-    return;
-  }
+  const err = document.getElementById('gate-err');
+  err.textContent = 'Verificando...';
+  const ok = await validarPassword(pwd);
+  if (ok === null) { err.textContent = 'Sin conexión. Probá de nuevo.'; return; }
+  if (!ok) { err.textContent = 'Contraseña incorrecta.'; return; }
+  err.textContent = '';
   localStorage.setItem('ag_pwd', pwd);
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
@@ -209,10 +224,12 @@ document.getElementById('pwd-input').addEventListener('keydown', e => {
 (async function() {
   const guardada = localStorage.getItem('ag_pwd');
   if (!guardada) return;
-  if (await sha256(guardada) !== HASH) {
+  const ok = await validarPassword(guardada);
+  if (ok === false) {
     localStorage.removeItem('ag_pwd'); // caducó: que la escriba de nuevo
     return;
   }
+  if (ok === null) return; // sin conexión: que entre a mano, no se borra nada
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   initApp();
