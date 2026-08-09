@@ -254,7 +254,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     <button onclick="closeExtras();openArchivos()"
       style="display:block;width:100%;text-align:left;background:#1a0a02;border:1.5px solid rgba(212,132,62,.45);border-radius:10px;padding:14px 16px;margin-bottom:12px;cursor:pointer;font-family:inherit">
       <div style="color:#D4A574;font-weight:800;font-size:16px;margin-bottom:5px">📦 Archivos de la app</div>
-      <div style="color:#f0e0d0;font-size:13px;line-height:1.5">Descargar el instalador de Android y el de iPhone. No le llega a nadie: es solo para vos.</div>
+      <div style="color:#f0e0d0;font-size:13px;line-height:1.5">El código fuente y las claves, por si algún día tiene que seguirla otra persona. No le llega a nadie: es solo para vos.</div>
     </button>
 
     <div class="modal-actions">
@@ -278,12 +278,18 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
       <div style="color:#9C8775;font-size:12.5px">Android e iPhone, las 957 canciones y una guía para compilarla y continuarla. Sin contraseñas ni claves adentro.</div>
     </a>
 
+    <a href="https://github.com/aleguitarra/aleguitarra.github.io/releases/latest/download/aleguitarra-claves.7z"
+       style="display:block;background:#1a0a02;border:1.5px solid rgba(255,107,107,.5);border-radius:10px;padding:14px 16px;margin-bottom:16px;text-decoration:none">
+      <div style="color:#ff8a8a;font-weight:800;font-size:15px;margin-bottom:3px">🔒 Clave de firma y accesos</div>
+      <div style="color:#9C8775;font-size:12.5px">Cifrado con AES-256. Sin la contraseña no se puede abrir ni ver qué contiene. Se abre con 7-Zip.</div>
+    </a>
+
     <div style="background:rgba(204,0,0,.1);border-left:3px solid #ff6b6b;border-radius:6px;padding:12px 14px;color:#f0e0d0;font-size:13px;line-height:1.6">
-      <strong style="color:#ff8a8a">La clave de firma no está acá, y no tiene que estar.</strong><br>
-      Cualquier archivo de esta página se puede bajar con solo tener el enlace, sin contraseña.
-      Con la clave de firma, alguien podría publicar un "Ale Guitarra" falso que los celulares
-      aceptarían como actualización de la tuya. Esa clave va en un gestor de contraseñas con
-      contacto de emergencia, o en un pendrive guardado, nunca en internet.
+      <strong style="color:#ff8a8a">La contraseña del archivo cifrado no está en ningún lado de esta web.</strong><br>
+      Es lo único que lo protege, y sin ella ese archivo no lo abre nadie, ni vos.
+      Tiene que estar guardada en un gestor de contraseñas con contacto de emergencia.
+      Adentro va la clave que firma la app: si alguien la obtuviera, podría publicar un
+      "Ale Guitarra" falso que los celulares aceptarían como actualización de la verdadera.
     </div>
 
     <div class="modal-actions">
