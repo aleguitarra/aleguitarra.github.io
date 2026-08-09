@@ -251,8 +251,49 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
       <div style="color:#f0e0d0;font-size:13px;line-height:1.5">Les aparece al abrir la app, una sola vez. Es anónima y la podés pausar o borrar cuando quieras.</div>
     </button>
 
+    <button onclick="closeExtras();openArchivos()"
+      style="display:block;width:100%;text-align:left;background:#1a0a02;border:1.5px solid rgba(212,132,62,.45);border-radius:10px;padding:14px 16px;margin-bottom:12px;cursor:pointer;font-family:inherit">
+      <div style="color:#D4A574;font-weight:800;font-size:16px;margin-bottom:5px">📦 Archivos de la app</div>
+      <div style="color:#f0e0d0;font-size:13px;line-height:1.5">Descargar el instalador de Android y el de iPhone. No le llega a nadie: es solo para vos.</div>
+    </button>
+
     <div class="modal-actions">
       <button class="btn btn-cancel btn" onclick="closeExtras()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ARCHIVOS DE LA APP -->
+<!-- Se publican como "release" del repo público de la web, no como archivos
+     sueltos del sitio: un APK son ~56 MB y quedarían para siempre en el
+     historial de git, engordando el repo con cada versión. -->
+<div class="modal-bg" id="arch-modal" style="display:none">
+  <div class="modal-box" style="max-width:580px">
+    <h2 style="color:#D4A574">📦 Archivos de la app</h2>
+    <p style="margin-bottom:18px">Los instaladores de la última versión publicada. Descargarlos no le avisa ni le cambia nada a nadie.</p>
+
+    <a href="https://github.com/aleguitarra/aleguitarra.github.io/releases/latest/download/aleguitarra.apk"
+       style="display:block;background:#1a0a02;border:1.5px solid rgba(39,174,96,.45);border-radius:10px;padding:13px 16px;margin-bottom:10px;text-decoration:none">
+      <div style="color:#27AE60;font-weight:800;font-size:15px;margin-bottom:3px">⬇ Android · APK</div>
+      <div style="color:#9C8775;font-size:12.5px">Se instala en cualquier Android activando "orígenes desconocidos".</div>
+    </a>
+
+    <a href="https://github.com/aleguitarra/aleguitarra.github.io/releases/latest/download/aleguitarra.ipa"
+       style="display:block;background:#1a0a02;border:1.5px solid rgba(90,140,200,.45);border-radius:10px;padding:13px 16px;margin-bottom:16px;text-decoration:none">
+      <div style="color:#5B9BD5;font-weight:800;font-size:15px;margin-bottom:3px">⬇ iPhone · IPA</div>
+      <div style="color:#9C8775;font-size:12.5px">Guardalo como respaldo. Para instalarlo en un iPhone hacen falta los certificados de Apple.</div>
+    </a>
+
+    <div style="background:rgba(212,132,62,.1);border-left:3px solid #D4A574;border-radius:6px;padding:12px 14px;color:#f0e0d0;font-size:13px;line-height:1.6">
+      <strong style="color:#fff">Con estos archivos la app se instala, pero no se puede seguir.</strong><br>
+      Para que alguien pueda corregir un acorde o publicar una versión nueva hacen falta además:
+      el <strong style="color:#fff">código fuente</strong>, la <strong style="color:#fff">clave de firma</strong> de Android
+      (sin ella Play no acepta actualizaciones, y no se puede recuperar) y el acceso a
+      <strong style="color:#fff">Play Console, Apple, GitHub, Supabase y Firebase</strong>.
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-cancel btn" onclick="closeArchivos()">Cerrar</button>
     </div>
   </div>
 </div>
@@ -1037,6 +1078,9 @@ let pushSong = null;
 // ── ADICIONALES ───────────────────────────────────────────────────────────────
 function openExtras()  { document.getElementById('extras-modal').style.display = 'flex'; }
 function closeExtras() { document.getElementById('extras-modal').style.display = 'none'; }
+
+function openArchivos()  { document.getElementById('arch-modal').style.display = 'flex'; }
+function closeArchivos() { document.getElementById('arch-modal').style.display = 'none'; }
 
 function openPush() {
   pushSong = null;
