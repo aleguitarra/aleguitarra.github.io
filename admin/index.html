@@ -124,8 +124,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     <h1>Ale Guitarra · Admin</h1>
     <a href="/" style="color:#9C8775;font-size:13px;text-decoration:none">← Inicio</a>
     <button class="btn btn-green" onclick="openNew()">+ Nueva canción</button>
-    <button class="btn" style="background:#27AE60;color:#fff" onclick="openPush()">📢 Crear notificación</button>
-    <button class="btn" style="background:#8E44AD;color:#fff" onclick="openEnc()">📊 Encuestas</button>
+    <!-- Un solo botón en vez de dos sueltos. Mandar un aviso o publicar una
+         encuesta le llega a TODA la gente que tiene la app, así que no conviene
+         que estén a un clic de distancia de "Nueva canción", que es inofensivo.
+         Azul a propósito: el verde se lee como "dale, seguí". -->
+    <button class="btn" style="background:#3A6EA5;color:#fff" onclick="openExtras()">⚙️ Adicionales</button>
   </div>
 
   <div id="stats">
@@ -229,11 +232,46 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   </div>
 </div>
 
+<!-- ADICIONALES: menú intermedio -->
+<div class="modal-bg" id="extras-modal" style="display:none" onclick="bgClose(event,'extras-modal')">
+  <div class="modal-box" style="max-width:540px">
+    <h2 style="color:#5B9BD5">⚙️ Opciones adicionales</h2>
+    <p style="margin-bottom:18px">Las dos cosas de acá abajo <strong style="color:#fff">le llegan a toda la gente que tiene la app</strong>, no solo a vos. Leé la advertencia de cada una antes de entrar.</p>
+
+    <button onclick="closeExtras();openPush()"
+      style="display:block;width:100%;text-align:left;background:#1a0a02;border:1.5px solid rgba(39,174,96,.45);border-radius:10px;padding:14px 16px;margin-bottom:12px;cursor:pointer;font-family:inherit">
+      <div style="color:#27AE60;font-weight:800;font-size:16px;margin-bottom:5px">📢 Crear notificación</div>
+      <div style="color:#f0e0d0;font-size:13px;line-height:1.5">Les suena el celular a todos en el momento.
+        <strong style="color:#ff8a8a">No se puede borrar ni corregir después.</strong></div>
+    </button>
+
+    <button onclick="closeExtras();openEnc()"
+      style="display:block;width:100%;text-align:left;background:#1a0a02;border:1.5px solid rgba(142,68,173,.5);border-radius:10px;padding:14px 16px;margin-bottom:12px;cursor:pointer;font-family:inherit">
+      <div style="color:#B06FD4;font-weight:800;font-size:16px;margin-bottom:5px">📊 Encuestas</div>
+      <div style="color:#f0e0d0;font-size:13px;line-height:1.5">Les aparece al abrir la app, una sola vez y sin bloquear nada.
+        Podés pausarla cuando quieras, pero <strong style="color:#ff8a8a">las respuestas que ya te mandaron no se borran.</strong></div>
+    </button>
+
+    <div class="modal-actions">
+      <button class="btn btn-cancel btn" onclick="closeExtras()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ENCUESTAS MODAL -->
 <div class="modal-bg" id="enc-modal" style="display:none" onclick="bgClose(event,'enc-modal')">
   <div class="modal-box" style="max-width:640px">
     <h2 style="color:#8E44AD">📊 Encuestas</h2>
-    <p style="margin-bottom:16px">Le aparecen a la gente al abrir la app, una sola vez y sin bloquear nada.</p>
+
+    <div style="background:rgba(204,0,0,.12);border:1.5px solid rgba(255,107,107,.45);border-radius:9px;padding:13px 15px;margin-bottom:18px">
+      <div style="color:#ff8a8a;font-weight:800;font-size:14px;margin-bottom:6px">⚠️ Leé esto antes de publicar</div>
+      <div style="color:#f0e0d0;font-size:13px;line-height:1.6">
+        Le aparece a <strong style="color:#fff">toda la gente que tiene la app</strong> al abrirla, una sola vez y sin bloquearles nada.<br>
+        La pregunta y las opciones <strong style="color:#fff">no se pueden editar después</strong>. Si te equivocás, hay que pausarla y crear otra.<br>
+        Podés pausarla cuando quieras, pero <strong style="color:#fff">las respuestas que ya te mandaron no se borran</strong>.<br>
+        Es anónima: no guarda quién contestó qué.
+      </div>
+    </div>
 
     <label style="display:block;color:#D4A574;font-size:13px;font-weight:700;margin-bottom:5px">Pregunta</label>
     <input class="field" id="enc-preg" maxlength="120" placeholder="Ej: ¿Qué te gustaría que agreguemos?"
@@ -278,7 +316,15 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 <div class="modal-bg" id="push-modal" style="display:none" onclick="bgClose(event,'push-modal')">
   <div class="modal-box">
     <h2 style="color:#27AE60">📢 Crear notificación</h2>
-    <p style="margin-bottom:16px">Le llega a <strong style="color:#fff">todos</strong> los que tengan la app. No se puede deshacer.</p>
+
+    <div style="background:rgba(204,0,0,.12);border:1.5px solid rgba(255,107,107,.45);border-radius:9px;padding:13px 15px;margin-bottom:18px">
+      <div style="color:#ff8a8a;font-weight:800;font-size:14px;margin-bottom:6px">⚠️ Leé esto antes de enviar</div>
+      <div style="color:#f0e0d0;font-size:13px;line-height:1.6">
+        Le va a <strong style="color:#fff">sonar el celular a todas las personas que tienen la app</strong>, en el momento, estén donde estén.<br>
+        Una vez enviada <strong style="color:#fff">no se puede borrar, corregir ni cancelar</strong>. Si hay un error en el texto, queda así para siempre.<br>
+        Revisá la ortografía y a dónde lleva antes de confirmar.
+      </div>
+    </div>
 
     <label style="display:block;color:#D4A574;font-size:13px;font-weight:700;margin-bottom:5px">Título</label>
     <input class="field" id="push-title" maxlength="60" placeholder="Ej: ¡Nuevas canciones!"
@@ -969,6 +1015,10 @@ async function doDelete() {
 const PUSH_EDGE = 'https://ntrfkgxqeugjshvicgfj.supabase.co/functions/v1/send-push';
 let pushSong = null;
 
+// ── ADICIONALES ───────────────────────────────────────────────────────────────
+function openExtras()  { document.getElementById('extras-modal').style.display = 'flex'; }
+function closeExtras() { document.getElementById('extras-modal').style.display = 'none'; }
+
 function openPush() {
   pushSong = null;
   ['push-title','push-body','push-song-q','push-list-code','push-url','push-pwd'].forEach(id =>
@@ -1118,6 +1168,19 @@ async function crearEnc() {
   if (opciones.length === 1) return encMsg('Con una sola opción no es una encuesta', false);
 
   const h = document.getElementById('enc-horas').value;
+
+  // Confirmación final, igual que al mandar una notificación: la encuesta le
+  // aparece a todo el mundo y la pregunta no se puede editar después.
+  const cuanto = h ? ({'12':'12 horas','24':'1 día','72':'3 días','168':'1 semana'})[h] : 'sin límite de tiempo';
+  const resumen = opciones.length
+    ? opciones.map(o => '  • ' + o).join('\n')
+    : '  (sin opciones, solo escriben)';
+  if (!confirm(
+      'Se le va a mostrar a TODA la gente que tiene la app al abrirla.\n' +
+      'La pregunta no se puede editar después.\n\n' +
+      '"' + pregunta + '"\n' + resumen + '\n\n' +
+      'Circula: ' + cuanto + '\n\n¿Publicar?')) return;
+
   const btn = document.getElementById('enc-btn');
   btn.disabled = true; btn.textContent = 'Publicando...';
   try {
@@ -1225,6 +1288,7 @@ function bgClose(e, id) {
     else if (id==='del-modal') closeDel();
     else if (id==='push-modal') closePush();
     else if (id==='enc-modal') closeEnc();
+    else if (id==='extras-modal') closeExtras();
   }
 }
 </script>
