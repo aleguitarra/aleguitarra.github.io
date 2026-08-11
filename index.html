@@ -233,6 +233,27 @@
   .store-btn-small { font-size: 11px; opacity: 0.72; line-height: 1; margin-bottom: 3px; }
   .store-btn-big { font-size: 17px; font-weight: 700; line-height: 1.1; }
 
+  /* Windows va en secundario: es para el operador de la iglesia, no para la
+     persona que entra a buscar la app en su celular. */
+  .store-btn.windows {
+    background: transparent;
+    color: var(--cream);
+    border: 1px solid rgba(245, 230, 211, 0.35);
+    box-shadow: none;
+  }
+  .store-btn.windows:hover {
+    border-color: var(--cream);
+    box-shadow: 0 12px 30px rgba(245, 230, 211, 0.12);
+  }
+  .nota-windows {
+    max-width: 520px;
+    margin: 18px auto 0;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--muted);
+    text-align: center;
+  }
+
   /* ============ STATS ============ */
   .stats {
     display: grid;
@@ -643,7 +664,28 @@
         <span class="store-btn-big">App Store</span>
       </div>
     </a>
+
+    <!-- Windows: no va a una tienda, baja un ZIP con la carpeta. Se distribuye
+         así y no como .exe suelto porque Windows muestra la pantalla azul de
+         "protegió tu PC" con cualquier ejecutable descargado sin firmar, y
+         mucha gente se frena ahí pensando que es un virus. Un ZIP no la
+         dispara. -->
+    <a href="https://github.com/aleguitarra/aleguitarra.github.io/releases/latest/download/AleGuitarra-PC.zip" class="store-btn windows">
+      <svg class="store-btn-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+      </svg>
+      <div class="store-btn-text">
+        <span class="store-btn-small">Para proyectar</span>
+        <span class="store-btn-big">Windows</span>
+      </div>
+    </a>
   </div>
+
+  <p class="nota-windows">
+    La versión de Windows sirve para proyectar la letra en una pantalla o
+    proyector, con los acordes en un monitor aparte para los músicos.
+    No se instala: se descomprime y se abre.
+  </p>
 
   <div class="stats">
     <div class="stat">
