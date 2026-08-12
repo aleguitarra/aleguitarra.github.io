@@ -1,6 +1,5 @@
 {
-  "version": 1,
-  "nombre": "1.0",
-  "urgente": false,
-  "nota": ""
+  "version": 2,
+  "nombre": "1.1",
+  "nota": "Buscador que aguanta errores de tipeo y F8 para esconder la letra"
 }
