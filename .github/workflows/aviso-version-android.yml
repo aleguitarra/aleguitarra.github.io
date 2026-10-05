@@ -1,0 +1,95 @@
+# Aviso automático cuando Google Play publica una versión nueva de Ale Guitarra.
+#
+# Cada 30 minutos mira qué versión muestra Google Play. Cuando aparece una
+# nueva, espera 2 horas (lo que tarda Google en habilitar la actualización
+# dentro de la app) y manda UNA notificación a todos los celulares. Al tocarla
+# se abre la app y aparece el cartel de actualización de Play.
+#
+# Necesita el secreto ADMIN_PASSWORD (la misma contraseña de administrador de
+# la app): Settings > Secrets and variables > Actions > New repository secret.
+#
+# Archivos de estado (no tocar a mano salvo para corregir):
+#   .github/play-version.txt    última versión que ya se avisó
+#   .github/play-detectada.txt  versión nueva vista y cuándo (espera las 2 h)
+name: Aviso de versión nueva en Google Play
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+    inputs:
+      probar:
+        description: 'Solo mostrar qué haría, sin mandar la notificación'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aviso-version-android
+  cancel-in-progress: false
+
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Revisar Google Play y avisar
+        env:
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          PROBAR: ${{ github.event_name == 'workflow_dispatch' && inputs.probar }}
+          ANON: sb_publishable_6_QGimLMb1AXk2nmu7_TKQ_tfWxvsVB
+          ESPERA_HORAS: '2'
+        run: |
+          set -euo pipefail
+          guardar() {
+            git config user.name "aviso-automatico"
+            git config user.email "actions@users.noreply.github.com"
+            git add .github/play-version.txt .github/play-detectada.txt 2>/dev/null || true
+            git commit -m "$1" && git push
+          }
+
+          html=$(curl -sL --max-time 30 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36" \
+            "https://play.google.com/store/apps/details?id=com.corapps.aleguitarra&hl=es&gl=UY" || true)
+          nueva=$(printf '%s' "$html" | grep -o '\[\[\["[0-9]\+\.[0-9]\+\.[0-9]\+"\]\]' | head -1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' || true)
+          avisada=$(cat .github/play-version.txt 2>/dev/null || echo 0.0.0)
+          echo "Google Play muestra: ${nueva:-(no se pudo leer)} — última avisada: $avisada"
+          [ -n "$nueva" ] || { echo "No se pudo leer la versión: se prueba en la próxima vuelta."; exit 0; }
+
+          mayor=$(printf '%s\n%s\n' "$avisada" "$nueva" | sort -V | tail -1)
+          if [ "$nueva" = "$avisada" ] || [ "$mayor" != "$nueva" ]; then echo "Nada nuevo."; exit 0; fi
+
+          ahora=$(date +%s)
+          read -r det_ver det_cuando < .github/play-detectada.txt 2>/dev/null || true
+          if [ "${det_ver:-}" != "$nueva" ]; then
+            echo "Versión nueva $nueva: se avisa en $ESPERA_HORAS horas."
+            [ "$PROBAR" = "true" ] && { echo "PRUEBA: no se guarda nada."; exit 0; }
+            echo "$nueva $ahora" > .github/play-detectada.txt
+            guardar "Google Play publicó la $nueva: aviso en $ESPERA_HORAS horas"
+            exit 0
+          fi
+          faltan=$(( det_cuando + ESPERA_HORAS * 3600 - ahora ))
+          if [ "$faltan" -gt 0 ]; then echo "Faltan $((faltan / 60)) minutos para avisar la $nueva."; exit 0; fi
+
+          if [ "$PROBAR" = "true" ]; then echo "PRUEBA: ahora mandaría el aviso de la $nueva."; exit 0; fi
+          [ -n "${ADMIN_PASSWORD:-}" ] || { echo "Falta el secreto ADMIN_PASSWORD."; exit 1; }
+
+          cuerpo=$(jq -n --arg p "$ADMIN_PASSWORD" '{
+            password: $p,
+            title: "🎸 Nueva versión de Ale Guitarra",
+            body: "Aprendé guitarra desde cero con los videos de Ale, usá los tonos de tu iglesia y tocá en el mismo tono que tu equipo. Tocá para actualizar.",
+            type: "home"
+          }')
+          codigo=$(curl -s -o respuesta.txt -w '%{http_code}' --max-time 60 -X POST \
+            "https://ntrfkgxqeugjshvicgfj.supabase.co/functions/v1/send-push" \
+            -H "Content-Type: application/json" -H "apikey: $ANON" -H "Authorization: Bearer $ANON" \
+            -d "$cuerpo")
+          echo "Respuesta ($codigo): $(cat respuesta.txt)"
+          [ "$codigo" = "200" ] || { echo "No se pudo mandar: se reintenta en la próxima vuelta."; exit 1; }
+
+          echo "$nueva" > .github/play-version.txt
+          rm -f .github/play-detectada.txt
+          git rm -q --cached .github/play-detectada.txt 2>/dev/null || true
+          guardar "Aviso enviado: versión $nueva en Google Play"
