@@ -111,3 +111,36 @@ jobs:
           rm -f .github/play-detectada.txt
           git rm -q --cached .github/play-detectada.txt 2>/dev/null || true
           guardar "Aviso enviado: versión $nueva en Google Play"
+
+      # El cartel de iOS se activa solo, con el mismo texto de siempre, cuando
+      # la versión nueva ya salió en Google Play (y avisó) y también está en el
+      # App Store. Pone "latest_ios_version" (la app compara la versión) y deja
+      # "latest_ios_build" en 243 o más para las apps viejas (1.7.1 y antes),
+      # que comparan el número de compilación.
+      #   .github/ios-version.txt  versión para la que ya se activó el cartel
+      - name: Activar el cartel de iOS
+        if: always()
+        env:
+          PROBAR: ${{ github.event_name == 'workflow_dispatch' && inputs.probar }}
+        run: |
+          set -euo pipefail
+          git pull -q --rebase origin main || true
+          ios=$(curl -s --max-time 30 "https://itunes.apple.com/lookup?bundleId=com.corapps.aleguitarra&country=uy" | jq -r '.results[0].version // empty' || true)
+          hecha=$(cat .github/ios-version.txt 2>/dev/null || echo 0.0.0)
+          avisada=$(cat .github/play-version.txt 2>/dev/null || echo 0.0.0)
+          echo "App Store: ${ios:-(no se pudo leer)} — cartel de iOS activado para: $hecha — Google Play ya avisada: $avisada"
+          [ -n "$ios" ] || exit 0
+          mayor() { [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -1)" = "$1" ]; }
+          mayor "$ios" "$hecha" || { echo "Cartel de iOS al día."; exit 0; }
+          if mayor "$ios" "$avisada"; then echo "La $ios ya está en el App Store: el cartel se activa cuando salga en Google Play."; exit 0; fi
+          if [ "$PROBAR" = "true" ]; then echo "PRUEBA: activaría el cartel de iOS para la $ios."; exit 0; fi
+          build=$(jq -r '.latest_ios_build // "0"' version-ios.json)
+          [ "$build" -ge 243 ] 2>/dev/null || build=243
+          jq --arg v "$ios" --arg b "$build" '.latest_ios_version = $v | .latest_ios_build = $b | .mandatory = false
+            | .message = "¡Nueva versión de Ale Guitarra!\n\nYa está disponible la nueva versión.\n\n¿Querés actualizarla ahora?"' \
+            version-ios.json > version-ios.tmp && mv version-ios.tmp version-ios.json
+          echo "$ios" > .github/ios-version.txt
+          git config user.name "aviso-automatico"
+          git config user.email "actions@users.noreply.github.com"
+          git add version-ios.json .github/ios-version.txt
+          git commit -m "iOS: cartel de actualización a la $ios (automático)" && git push
