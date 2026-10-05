@@ -79,7 +79,7 @@ jobs:
           cuerpo=$(jq -n --arg p "$ADMIN_PASSWORD" '{
             password: $p,
             title: "🎸 Nueva versión de Ale Guitarra",
-            body: "Aprendé guitarra desde cero con los videos de Ale, usá los tonos de tu iglesia y tocá en el mismo tono que tu equipo. Tocá para actualizar.",
+            body: "Ya está disponible la nueva versión. Tocá para actualizar.",
             type: "home"
           }')
           codigo=$(curl -s -o respuesta.txt -w '%{http_code}' --max-time 60 -X POST \
