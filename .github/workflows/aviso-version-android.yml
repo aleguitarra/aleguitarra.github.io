@@ -51,6 +51,25 @@ jobs:
             git commit -m "$1" && git push
           }
 
+          # En modo prueba se comprueba que la contraseña esté bien SIN mandar
+          # nada: el servidor revisa la contraseña antes que el texto, así que
+          # un aviso sin título responde "Falta el título" si la contraseña es
+          # correcta, o "Contraseña incorrecta" si no.
+          if [ "$PROBAR" = "true" ]; then
+            if [ -z "${ADMIN_PASSWORD:-}" ]; then
+              echo "CONTRASEÑA: falta cargar el secreto ADMIN_PASSWORD."
+            else
+              r=$(curl -s --max-time 30 -X POST "https://ntrfkgxqeugjshvicgfj.supabase.co/functions/v1/send-push" 
+                -H "Content-Type: application/json" -H "apikey: $ANON" -H "Authorization: Bearer $ANON" 
+                -d "$(jq -n --arg p "$ADMIN_PASSWORD" '{password: $p, title: "", body: "", type: "home"}')")
+              case "$r" in
+                *"Falta el t"*) echo "CONTRASEÑA: correcta ✓ (no se mandó nada)";;
+                *"incorrecta"*) echo "CONTRASEÑA: INCORRECTA ✗ — revisá el secreto ADMIN_PASSWORD"; exit 1;;
+                *) echo "CONTRASEÑA: no se pudo comprobar: $r";;
+              esac
+            fi
+          fi
+
           html=$(curl -sL --max-time 30 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36" \
             "https://play.google.com/store/apps/details?id=com.corapps.aleguitarra&hl=es&gl=UY" || true)
           nueva=$(printf '%s' "$html" | grep -o '\[\[\["[0-9]\+\.[0-9]\+\.[0-9]\+"\]\]' | head -1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' || true)
