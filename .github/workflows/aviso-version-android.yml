@@ -59,9 +59,8 @@ jobs:
             if [ -z "${ADMIN_PASSWORD:-}" ]; then
               echo "CONTRASEÑA: falta cargar el secreto ADMIN_PASSWORD."
             else
-              r=$(curl -s --max-time 30 -X POST "https://ntrfkgxqeugjshvicgfj.supabase.co/functions/v1/send-push" 
-                -H "Content-Type: application/json" -H "apikey: $ANON" -H "Authorization: Bearer $ANON" 
-                -d "$(jq -n --arg p "$ADMIN_PASSWORD" '{password: $p, title: "", body: "", type: "home"}')")
+              datos=$(jq -n --arg p "$ADMIN_PASSWORD" '{password: $p, title: "", body: "", type: "home"}')
+              r=$(curl -s --max-time 30 -X POST -H "Content-Type: application/json" -H "apikey: $ANON" -H "Authorization: Bearer $ANON" -d "$datos" "https://ntrfkgxqeugjshvicgfj.supabase.co/functions/v1/send-push")
               case "$r" in
                 *"Falta el t"*) echo "CONTRASEÑA: correcta ✓ (no se mandó nada)";;
                 *"incorrecta"*) echo "CONTRASEÑA: INCORRECTA ✗ — revisá el secreto ADMIN_PASSWORD"; exit 1;;
