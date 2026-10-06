@@ -1,9 +1,11 @@
 # Aviso automático cuando Google Play publica una versión nueva de Ale Guitarra.
 #
-# Cada 30 minutos mira qué versión muestra Google Play. Cuando aparece una
-# nueva, espera 2 horas (lo que tarda Google en habilitar la actualización
-# dentro de la app) y manda UNA notificación a todos los celulares. Al tocarla
-# se abre la app y aparece el cartel de actualización de Play.
+# Mira qué versión muestra Google Play (GitHub lo corre cada 30 minutos en
+# teoría; en la práctica, a veces cada varias horas). Cuando aparece una
+# nueva, espera 2 horas DENTRO de la misma ejecución (lo que tarda Google en
+# habilitar la actualización dentro de la app) y manda UNA notificación a
+# todos los celulares. Al tocarla se abre la app y aparece el cartel de
+# actualización de Play. Desde "Run workflow" se puede mandar ya, sin esperar.
 #
 # Necesita el secreto ADMIN_PASSWORD (la misma contraseña de administrador de
 # la app): Settings > Secrets and variables > Actions > New repository secret.
@@ -22,6 +24,10 @@ on:
         description: 'Solo mostrar qué haría, sin mandar la notificación'
         type: boolean
         default: true
+      mandar_ya:
+        description: 'Si hay una versión nueva, mandar el aviso ya (sin esperar las 2 horas)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -33,6 +39,7 @@ concurrency:
 jobs:
   revisar:
     runs-on: ubuntu-latest
+    timeout-minutes: 330
     steps:
       - uses: actions/checkout@v4
 
@@ -40,6 +47,7 @@ jobs:
         env:
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           PROBAR: ${{ github.event_name == 'workflow_dispatch' && inputs.probar }}
+          MANDAR_YA: ${{ github.event_name == 'workflow_dispatch' && inputs.mandar_ya }}
           ANON: sb_publishable_6_QGimLMb1AXk2nmu7_TKQ_tfWxvsVB
           ESPERA_HORAS: '2'
         run: |
@@ -48,7 +56,7 @@ jobs:
             git config user.name "aviso-automatico"
             git config user.email "actions@users.noreply.github.com"
             git add .github/play-version.txt .github/play-detectada.txt 2>/dev/null || true
-            git commit -m "$1" && git push
+            git commit -m "$1" && { git pull -q --rebase origin main || true; git push; }
           }
 
           # En modo prueba se comprueba que la contraseña esté bien SIN mandar
@@ -86,10 +94,16 @@ jobs:
             [ "$PROBAR" = "true" ] && { echo "PRUEBA: no se guarda nada."; exit 0; }
             echo "$nueva $ahora" > .github/play-detectada.txt
             guardar "Google Play publicó la $nueva: aviso en $ESPERA_HORAS horas"
-            exit 0
+            det_cuando=$ahora
           fi
           faltan=$(( det_cuando + ESPERA_HORAS * 3600 - ahora ))
-          if [ "$faltan" -gt 0 ]; then echo "Faltan $((faltan / 60)) minutos para avisar la $nueva."; exit 0; fi
+          if [ "$faltan" -gt 0 ] && [ "$MANDAR_YA" != "true" ]; then
+            if [ "$PROBAR" = "true" ]; then echo "PRUEBA: faltan $((faltan / 60)) minutos para avisar la $nueva."; exit 0; fi
+            # GitHub no corre esto cada 30 minutos de verdad (a veces pasan
+            # horas): se espera acá mismo y se manda a la hora justa.
+            echo "Espero $((faltan / 60)) minutos y mando el aviso de la $nueva."
+            sleep "$faltan"
+          fi
 
           if [ "$PROBAR" = "true" ]; then echo "PRUEBA: ahora mandaría el aviso de la $nueva."; exit 0; fi
           [ -n "${ADMIN_PASSWORD:-}" ] || { echo "Falta el secreto ADMIN_PASSWORD."; exit 1; }
