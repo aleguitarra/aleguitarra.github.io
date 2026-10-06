@@ -55,7 +55,10 @@ jobs:
           guardar() {
             git config user.name "aviso-automatico"
             git config user.email "actions@users.noreply.github.com"
-            git add .github/play-version.txt .github/play-detectada.txt 2>/dev/null || true
+            # De a uno: si uno no existe (por ejemplo, detectada ya borrada), el
+            # otro se agrega igual. Antes un solo "git add" con los dos fallaba
+            # entero y no se guardaba la versión avisada.
+            for f in .github/play-version.txt .github/play-detectada.txt; do git add -A -- "$f" 2>/dev/null || true; done
             git commit -m "$1" && { git pull -q --rebase --autostash origin main || true; git push; }
           }
 
