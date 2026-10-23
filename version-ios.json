@@ -1,6 +1,7 @@
 {
-  "latest_ios_build": "242",
+  "latest_ios_build": "243",
   "testflight_url": "https://apps.apple.com/app/id6769582020",
   "mandatory": false,
-  "message": "¡Nueva versión de Ale Guitarra!\n\nAprendé guitarra desde cero con los videos de Ale, usá los tonos de tu iglesia y tocá en el mismo tono que tu equipo.\n\n¿Querés actualizarla ahora?"
+  "message": "¡Nueva versión de Ale Guitarra!\n\nYa está disponible la nueva versión.\n\n¿Querés actualizarla ahora?",
+  "latest_ios_version": "1.8.0"
 }
