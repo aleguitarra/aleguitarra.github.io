@@ -97,6 +97,20 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 #toast.err{background:#CC0000}
 #toast.show{transform:translateX(-50%) translateY(0)}
 
+/* BUZÓN */
+.buzon-badge{background:#ff3b30;color:#fff;border-radius:10px;font-size:11px;font-weight:800;padding:1px 7px;margin-left:2px;display:none}
+#buzon-aviso{display:none;background:#D35400;color:#fff;padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer}
+#buzon-aviso:hover{opacity:.9}
+.bz-card{background:#1a0a02;border-radius:10px;padding:13px 14px;margin-bottom:10px;border:1px solid rgba(212,132,62,.15)}
+.bz-card.nuevo{border-color:rgba(211,84,0,.6)}
+.bz-card.leido{opacity:.6}
+.bz-tit{font-size:15px;font-weight:800;color:#f0e0d0}
+.bz-card.nuevo .bz-tit{color:#FF9F5A}
+.bz-com{color:#f0e0d0;font-size:13.5px;line-height:1.45;margin-top:6px;white-space:pre-wrap;word-break:break-word}
+.bz-meta{color:#9C8775;font-size:12px;margin-top:6px}
+.bz-acc{display:flex;gap:14px;margin-top:9px;flex-wrap:wrap;align-items:center}
+.bz-acc a{font-size:13px;text-decoration:none}
+
 @media(max-width:600px){
   .field-row{grid-template-columns:1fr}
   .song-actions{flex-direction:column}
@@ -129,7 +143,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
          que estén a un clic de distancia de "Nueva canción", que es inofensivo.
          Azul a propósito: el verde se lee como "dale, seguí". -->
     <button class="btn" style="background:#3A6EA5;color:#fff" onclick="openExtras()">⚙️ Adicionales</button>
+    <!-- Pedidos de canciones y reportes de errores que manda la gente desde
+         la app (sin mail). Los mismos que ve el administrador en la app. -->
+    <button class="btn" style="background:#D35400;color:#fff" onclick="openBuzon()">📬 Buzón <span class="buzon-badge" id="buzon-badge"></span></button>
   </div>
+  <div id="buzon-aviso" onclick="openBuzon()"></div>
 
   <div id="stats">
     <div class="stat"><div class="stat-val" id="stat-total">—</div><div class="stat-label">Canciones</div></div>
@@ -322,6 +340,26 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   </div>
 </div>
 
+<!-- BUZÓN MODAL -->
+<div class="modal-bg" id="buzon-modal" style="display:none">
+  <div class="modal-box" style="max-width:680px">
+    <h2 style="color:#FF9F5A">📬 Buzón</h2>
+    <div style="background:rgba(212,132,62,.1);border-left:3px solid #D4A574;border-radius:6px;padding:10px 13px;margin-bottom:16px;color:#f0e0d0;font-size:13px;line-height:1.55">
+      Pedidos de canciones y errores que manda la gente desde la app. Son anónimos y solo los ve el administrador. Los sin leer van arriba.
+    </div>
+    <div class="cat-pills" style="margin-bottom:14px">
+      <button class="cat-pill active" data-bz="todos" onclick="filtroBuzon(this)">Todos</button>
+      <button class="cat-pill" data-bz="pedido" onclick="filtroBuzon(this)">🎵 Pedidos</button>
+      <button class="cat-pill" data-bz="error" onclick="filtroBuzon(this)">⚠️ Errores</button>
+      <a href="#" onclick="cargarBuzon();return false" style="color:#D4A574;font-size:13px;margin-left:auto;align-self:center">↻ Actualizar</a>
+    </div>
+    <div id="buzon-lista"><p style="color:#9C8775;font-size:13px">Cargando...</p></div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel btn" onclick="closeBuzon()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <!-- NOTIFICACION MODAL -->
 <div class="modal-bg" id="push-modal" style="display:none">
   <div class="modal-box">
@@ -470,6 +508,7 @@ async function login() {
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   loadIndex();
+  mirarBuzon();
 }
 document.getElementById('pwd-input').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
 // Sesión guardada: la revalidamos contra el hash ACTUAL antes de dejar pasar.
@@ -488,6 +527,7 @@ document.getElementById('pwd-input').addEventListener('keydown', e => { if(e.key
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   loadIndex();
+  mirarBuzon();
 })();
 
 // ── CHORD DETECTION (same as editor) ──────────────────────────────────────────
@@ -884,7 +924,7 @@ function filterSongs() {
 }
 
 function setCat(btn) {
-  document.querySelectorAll('.cat-pill').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.cat-pill[data-cat]').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   currentCat = btn.dataset.cat;
   filterSongs();
@@ -1379,6 +1419,174 @@ async function verResultadosEnc(id) {
     ).join('');
   }
   cont.innerHTML = html + '</div>';
+}
+
+// ── BUZÓN ──────────────────────────────────────────────────────────────────────
+// Pedidos de canciones y reportes de errores que manda la gente desde la app,
+// sin mail. La tabla está cerrada: todo pasa por la Edge Function "buzon", que
+// pide la contraseña de administrador para leer, marcar o borrar.
+const BUZON_EDGE = 'https://ntrfkgxqeugjshvicgfj.supabase.co/functions/v1/buzon';
+let buzon = null;        // los mensajes (null: todavía no se cargaron)
+let buzonFiltro = 'todos';
+
+async function buzonApi(body) {
+  const r = await fetch(BUZON_EDGE, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'apikey':ANON, 'Authorization':'Bearer '+ANON },
+    body: JSON.stringify({ ...body, password: localStorage.getItem('ag_pwd') })
+  });
+  return await r.json();
+}
+
+/// Cuántos sin leer hay: numerito en el botón y cartel arriba. Se mira al
+/// entrar, cada 2 minutos y al volver a la pestaña.
+async function mirarBuzon() {
+  try {
+    const j = await buzonApi({ action: 'nuevos' });
+    if (j.ok) pintarNuevos(j.nuevos || 0);
+  } catch (e) { /* sin conexión: ya se mirará de nuevo */ }
+}
+
+function pintarNuevos(n) {
+  const b = document.getElementById('buzon-badge');
+  b.textContent = n > 99 ? '99+' : String(n);
+  b.style.display = n > 0 ? 'inline-block' : 'none';
+  const av = document.getElementById('buzon-aviso');
+  const abierto = document.getElementById('buzon-modal').style.display === 'flex';
+  av.textContent = n === 1
+    ? '📬 Tenés 1 mensaje nuevo en el buzón (pedido o error) · Tocá para verlo'
+    : `📬 Tenés ${n} mensajes nuevos en el buzón (pedidos y errores) · Tocá para verlos`;
+  av.style.display = n > 0 && !abierto ? 'block' : 'none';
+}
+
+setInterval(() => {
+  if (localStorage.getItem('ag_pwd') && document.getElementById('app').style.display === 'block') mirarBuzon();
+}, 120000);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && localStorage.getItem('ag_pwd') && document.getElementById('app').style.display === 'block') mirarBuzon();
+});
+
+function openBuzon() {
+  document.getElementById('buzon-modal').style.display = 'flex';
+  document.getElementById('buzon-aviso').style.display = 'none';
+  cargarBuzon();
+}
+function closeBuzon() {
+  document.getElementById('buzon-modal').style.display = 'none';
+  mirarBuzon();
+}
+
+function filtroBuzon(btn) {
+  document.querySelectorAll('[data-bz]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buzonFiltro = btn.dataset.bz;
+  pintarBuzon();
+}
+
+async function cargarBuzon() {
+  const cont = document.getElementById('buzon-lista');
+  if (!buzon) cont.innerHTML = '<p style="color:#9C8775;font-size:13px">Cargando...</p>';
+  try {
+    const j = await buzonApi({ action: 'listar' });
+    if (!j.ok) {
+      cont.innerHTML = `<p style="color:#ff6b6b;font-size:13px">${esc(j.error || 'No se pudo cargar el buzón')}</p>`;
+      return;
+    }
+    buzon = j.mensajes || [];
+    pintarBuzon();
+  } catch (e) {
+    cont.innerHTML = '<p style="color:#ff6b6b;font-size:13px">No se pudo conectar. Revisá tu internet.</p>';
+  }
+}
+
+function haceBuzon(fecha) {
+  const d = new Date(fecha);
+  if (isNaN(d)) return '';
+  const m = Math.floor((new Date() - d) / 60000);
+  if (m < 1) return 'recién';
+  if (m < 60) return `hace ${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `hace ${h} h`;
+  const dias = Math.floor(h / 24);
+  return dias === 1 ? 'hace 1 día' : `hace ${dias} días`;
+}
+
+/// Todo lo que escribió la gente pasa por esc(): nunca se mete como HTML.
+function pintarBuzon() {
+  const cont = document.getElementById('buzon-lista');
+  if (!buzon) return;
+  const sinLeer = buzon.filter(m => m.leido !== true).length;
+  pintarNuevos(sinLeer);
+  const lista = buzon
+    .filter(m => buzonFiltro === 'todos' || m.tipo === buzonFiltro)
+    .slice()
+    .sort((a, b) => ((a.leido === true) - (b.leido === true)) || ((b.id || 0) - (a.id || 0)));
+  if (!lista.length) {
+    cont.innerHTML = '<p style="color:#9C8775;font-size:13px;text-align:center;padding:24px">No hay mensajes.</p>';
+    return;
+  }
+  const cats = { alabanzas:'Alabanzas', escuela_dominical:'Escuela Bíblica', himnos:'Himnos' };
+  cont.innerHTML = lista.map(m => {
+    const id = Number(m.id);
+    const leido = m.leido === true;
+    const esError = m.tipo === 'error';
+    const meta = [
+      haceBuzon(m.creado),
+      cats[m.categoria] || '',
+      m.plataforma === 'ios' ? 'iPhone' : m.plataforma === 'android' ? 'Android' : '',
+      m.version ? 'v' + m.version : '',
+    ].filter(Boolean).map(esc).join(' · ');
+    const slug = String(m.slug || '');
+    const editar = esError && /^[a-z0-9_-]+$/i.test(slug)
+      ? `<a href="/editor/?slug=${encodeURIComponent(slug)}" target="_blank" style="color:#5B9BD5">✏️ Editar canción</a>` : '';
+    return `<div class="bz-card ${leido ? 'leido' : 'nuevo'}">
+      <div style="display:flex;gap:8px;align-items:flex-start">
+        <span style="font-size:17px">${esError ? '⚠️' : '🎵'}</span>
+        <div style="flex:1;min-width:0">
+          <div class="bz-tit">${esError ? 'Error en «' + esc(m.titulo) + '»' : esc(m.titulo)}</div>
+          ${m.artista ? `<div style="color:#f0e0d0;font-size:13px">${esc(m.artista)}</div>` : ''}
+          ${m.comentario ? `<div class="bz-com">${esc(m.comentario)}</div>` : ''}
+          <div class="bz-meta">${meta}</div>
+        </div>
+        ${leido ? '' : '<span style="width:9px;height:9px;border-radius:50%;background:#D35400;margin-top:6px;flex-shrink:0"></span>'}
+      </div>
+      <div class="bz-acc">
+        ${editar}
+        <a href="#" onclick="marcarBuzon(${id},${!leido});return false" style="color:#27AE60">${leido ? '✉️ Marcar sin leer' : '✓ Marcar como leído'}</a>
+        <a href="#" onclick="borrarBuzon(${id});return false" style="color:#ff6b6b;margin-left:auto">🗑 Borrar</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function marcarBuzon(id, leido) {
+  const m = (buzon || []).find(x => Number(x.id) === id);
+  if (!m) return;
+  m.leido = leido; // se ve al instante; si falla, vuelve atrás
+  pintarBuzon();
+  try {
+    const j = await buzonApi({ action: 'leido', id, leido });
+    if (j.ok) return;
+  } catch (e) {}
+  m.leido = !leido;
+  pintarBuzon();
+  toast('No se pudo guardar. Revisá tu internet.', true);
+}
+
+async function borrarBuzon(id) {
+  const m = (buzon || []).find(x => Number(x.id) === id);
+  if (!m) return;
+  if (!confirm('¿Borrar este mensaje?\n\n«' + m.titulo + '»\n\nNo se puede deshacer.')) return;
+  try {
+    const j = await buzonApi({ action: 'borrar', id });
+    if (j.ok) {
+      buzon = buzon.filter(x => Number(x.id) !== id);
+      pintarBuzon();
+      toast('Mensaje borrado');
+      return;
+    }
+    toast(j.error || 'No se pudo borrar', true);
+  } catch (e) { toast('No se pudo conectar', true); }
 }
 
 // ── UTILS ──────────────────────────────────────────────────────────────────────
